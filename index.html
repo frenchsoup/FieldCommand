@@ -49,10 +49,11 @@
             left: { x: 225, y: 125, label: 'LF' },
             center: { x: 350, y: 75, label: 'CF' },
             right: { x: 475, y: 125, label: 'RF' },
-            baseball: { x: 400, y: 425, label: '⚾' },
-            runner1: { x: 450, y: 425, label: 'BR' },
-            runner2: { x: 500, y: 425, label: 'BR' },
-            runner3: { x: 550, y: 425, label: 'BR' }
+            baseball: { x: 450, y: 450, label: '⚾' },
+            runner1: { x: 490, y: 450, label: 'BR' },
+            runner2: { x: 530, y: 450, label: 'BR' },
+            runner3: { x: 570, y: 450, label: 'BR' },
+            runner4: { x: 610, y: 450, label: 'BR' }
         };
 
         function DraggableMarker({ id, x, y, label, color, onDrag }) {
@@ -285,7 +286,7 @@
                             <circle cx="350" cy="325" r="20" fill="burlywood" />
                             <rect x="340" y="320" width="20" height="5" fill="white" />
                             <path 
-                                d="M 340 417 L 360 417 L 360 429 L 350 433 L 340 429 Z" 
+                                d="M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z" 
                                 fill="white"
                             />
                             <rect x="240" y="315" width="15" height="15" fill="white" transform="rotate(45 250 325)" />
@@ -318,7 +319,7 @@
                                         y2={currentLine.end.y}
                                         stroke="black"
                                         strokeWidth="2"
-                                        strokeDasharray={currentLine.type === 'dotted' ? '5,5' : 'none'}
+                                        strokeDasharray={line.type === 'dotted' ? '5,5' : 'none'}
                                         markerEnd="url(#arrow)"
                                     />
                                 </g>
@@ -346,7 +347,7 @@
                                     <button 
                                         key={index}
                                         onClick={() => loadPlay(play)}
-                                        className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 text-sm truncate transition"
+                                        className="bg-blue-100 p-2 rounded-lg hover:bg-blue-200 text-sm truncate transition text-gray-800"
                                         title={play.name}
                                     >
                                         {play.name}
