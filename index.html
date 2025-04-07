@@ -184,153 +184,145 @@
             };
 
             return (
-                <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
-                    <h1 className="text-2xl font-bold mb-4 text-center">Baseball Defensive Coach Tool</h1>
-                    
-                    <div className="mb-4 flex gap-4">
+                <div className="bg-white p-4 rounded-lg shadow-lg w-full max-w-[1200px] h-[600px] flex">
+                    {/* Left Sidebar */}
+                    <div className="w-1/4 p-4 flex flex-col gap-4">
+                        <h1 className="text-xl font-bold text-center">Baseball Defensive Coach Tool</h1>
                         <input 
                             type="text" 
                             value={playName}
                             onChange={(e) => setPlayName(e.target.value)}
                             placeholder="Enter play name"
-                            className="border p-2 rounded flex-1"
+                            className="border p-2 rounded w-full"
                         />
                         <button 
                             onClick={savePlay}
-                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
                         >
                             Save Play
                         </button>
                         <button 
                             onClick={resetPositions}
-                            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-full"
                         >
                             Reset
                         </button>
                     </div>
 
-                    <div className="mb-4 flex gap-4 justify-center">
+                    {/* Center SVG Field */}
+                    <div className="flex-1 flex flex-col items-center">
+                        <svg 
+                            width="600" 
+                            height="450" 
+                            viewBox="150 25 400 450" 
+                            className="border" 
+                            style={{ backgroundColor: 'rgba(0, 128, 0, 0.6)' }} 
+                            onMouseDown={handleMouseDown}
+                            onMouseMove={handleMouseMove}
+                            onMouseUp={handleMouseUp}
+                        >
+                            <defs>
+                                <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                                    <path d="M0,0 L0,6 L9,3 Z" fill="black" />
+                                </marker>
+                            </defs>
+                            <path 
+                                d="M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z" 
+                                fill="burlywood"
+                            />
+                            <path 
+                                d="M 350 425 L 250 325 L 350 225 L 450 325 Z" 
+                                fill="rgba(0, 128, 0, 0.6)"
+                            />
+                            <circle cx="350" cy="325" r="20" fill="burlywood" />
+                            <rect x="340" y="320" width="20" height="5" fill="white" />
+                            <path 
+                                d="M 340 417 L 360 417 L 360 429 L 350 433 L 340 429 Z" 
+                                fill="white"
+                            />
+                            <rect x="240" y="315" width="15" height="15" fill="white" transform="rotate(45 250 325)" />
+                            <rect x="340" y="215" width="15" height="15" fill="white" transform="rotate(45 350 225)" />
+                            <rect x="440" y="315" width="15" height="15" fill="white" transform="rotate(45 450 325)" />
+                            <line x1="350" y1="425" x2="250" y2="325" stroke="white" strokeWidth="2" />
+                            <line x1="250" y1="325" x2="350" y2="225" stroke="white" strokeWidth="2" />
+                            <line x1="350" y1="225" x2="450" y2="325" stroke="white" strokeWidth="2" />
+                            <line x1="450" y1="325" x2="350" y2="425" stroke="white" strokeWidth="2" />
+                            {lines.map((line, index) => (
+                                <g key={index}>
+                                    <line
+                                        x1={line.start.x}
+                                        y1={line.start.y}
+                                        x2={line.end.x}
+                                        y2={line.end.y}
+                                        stroke="black"
+                                        strokeWidth="2"
+                                        strokeDasharray={line.type === 'dotted' ? '5,5' : 'none'}
+                                        markerEnd="url(#arrow)"
+                                    />
+                                </g>
+                            ))}
+                            {currentLine && (
+                                <g>
+                                    <line
+                                        x1={currentLine.start.x}
+                                        y1={currentLine.start.y}
+                                        x2={currentLine.end.x}
+                                        y2={currentLine.end.y}
+                                        stroke="black"
+                                        strokeWidth="2"
+                                        strokeDasharray={currentLine.type === 'dotted' ? '5,5' : 'none'}
+                                        markerEnd="url(#arrow)"
+                                    />
+                                </g>
+                            )}
+                            {Object.entries(positions).map(([id, { x, y, label }]) => (
+                                <DraggableMarker 
+                                    key={id} 
+                                    id={id} 
+                                    x={x} 
+                                    y={y} 
+                                    label={label}
+                                    color={id === 'baseball' ? 'white' : id.includes('runner') ? 'black' : 'red'}
+                                    onDrag={handleDrag}
+                                />
+                            ))}
+                        </svg>
+                        <div className="mt-4 w-full">
+                            <h2 className="text-lg font-semibold text-center">Saved Plays</h2>
+                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                {savedPlays.map((play, index) => (
+                                    <button 
+                                        key={index}
+                                        onClick={() => loadPlay(play)}
+                                        className="bg-gray-200 p-2 rounded hover:bg-gray-300 text-center"
+                                    >
+                                        {play.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Sidebar */}
+                    <div className="w-1/4 p-4 flex flex-col gap-4">
                         <button
                             onClick={toggleSolidMode}
-                            className={`px-4 py-2 rounded ${isSolidMode ? 'bg-green-500 text-white' : 'bg-gray-200'}`}
+                            className={`px-4 py-2 rounded ${isSolidMode ? 'bg-green-500 text-white' : 'bg-gray-200'} w-full`}
                         >
                             Solid Line {isSolidMode ? '(On)' : '(Off)'}
                         </button>
                         <button
                             onClick={toggleDottedMode}
-                            className={`px-4 py-2 rounded ${isDottedMode ? 'bg-green-500 text-white' : 'bg-gray-200'}`}
+                            className={`px-4 py-2 rounded ${isDottedMode ? 'bg-green-500 text-white' : 'bg-gray-200'} w-full`}
                         >
                             Dotted Line {isDottedMode ? '(On)' : '(Off)'}
                         </button>
                         <button
                             onClick={clearLines}
-                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full"
                         >
                             Clear Lines
                         </button>
-                    </div>
-
-                    <svg 
-                        width="700" 
-                        height="500" 
-                        viewBox="150 25 400 450" 
-                        className="border mx-auto" 
-                        style={{ backgroundColor: 'rgba(0, 128, 0, 0.6)' }} 
-                        onMouseDown={handleMouseDown}
-                        onMouseMove={handleMouseMove}
-                        onMouseUp={handleMouseUp}
-                    >
-                        {/* Arrowhead Definition */}
-                        <defs>
-                            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-                                <path d="M0,0 L0,6 L9,3 Z" fill="black" />
-                            </marker>
-                        </defs>
-                        {/* Dirt Infield */}
-                        <path 
-                            d="M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z" 
-                            fill="burlywood"
-                        />
-                        {/* Grass Diamond */}
-                        <path 
-                            d="M 350 425 L 250 325 L 350 225 L 450 325 Z" 
-                            fill="rgba(0, 128, 0, 0.6)"
-                        />
-                        {/* Pitching Mound */}
-                        <circle cx="350" cy="325" r="20" fill="burlywood" />
-                        {/* Pitcher's Rubber */}
-                        <rect x="340" y="320" width="20" height="5" fill="white" />
-                        {/* Bases */}
-                        {/* Home Plate */}
-                        <path 
-                            d="M 340 417 L 360 417 L 360 429 L 350 433 L 340 429 Z" 
-                            fill="white"
-                        />
-                        <rect x="240" y="315" width="15" height="15" fill="white" transform="rotate(45 250 325)" />
-                        <rect x="340" y="215" width="15" height="15" fill="white" transform="rotate(45 350 225)" />
-                        <rect x="440" y="315" width="15" height="15" fill="white" transform="rotate(45 450 325)" />
-                        {/* Base Lines */}
-                        <line x1="350" y1="425" x2="250" y2="325" stroke="white" strokeWidth="2" />
-                        <line x1="250" y1="325" x2="350" y2="225" stroke="white" strokeWidth="2" />
-                        <line x1="350" y1="225" x2="450" y2="325" stroke="white" strokeWidth="2" />
-                        <line x1="450" y1="325" x2="350" y2="425" stroke="white" strokeWidth="2" />
-                        {/* Drawn Lines */}
-                        {lines.map((line, index) => (
-                            <g key={index}>
-                                <line
-                                    x1={line.start.x}
-                                    y1={line.start.y}
-                                    x2={line.end.x}
-                                    y2={line.end.y}
-                                    stroke="black"
-                                    strokeWidth="2"
-                                    strokeDasharray={line.type === 'dotted' ? '5,5' : 'none'}
-                                    markerEnd="url(#arrow)"
-                                />
-                            </g>
-                        ))}
-                        {/* Current Line Being Drawn */}
-                        {currentLine && (
-                            <g>
-                                <line
-                                    x1={currentLine.start.x}
-                                    y1={currentLine.start.y}
-                                    x2={currentLine.end.x}
-                                    y2={currentLine.end.y}
-                                    stroke="black"
-                                    strokeWidth="2"
-                                    strokeDasharray={currentLine.type === 'dotted' ? '5,5' : 'none'}
-                                    markerEnd="url(#arrow)"
-                                />
-                            </g>
-                        )}
-                        {/* Draggable Elements */}
-                        {Object.entries(positions).map(([id, { x, y, label }]) => (
-                            <DraggableMarker 
-                                key={id} 
-                                id={id} 
-                                x={x} 
-                                y={y} 
-                                label={label}
-                                color={id === 'baseball' ? 'white' : id.includes('runner') ? 'black' : 'red'}
-                                onDrag={handleDrag}
-                            />
-                        ))}
-                    </svg>
-
-                    <div className="mt-4">
-                        <h2 className="text-lg font-semibold">Saved Plays</h2>
-                        <div className="grid grid-cols-2 gap-2 mt-2">
-                            {savedPlays.map((play, index) => (
-                                <button 
-                                    key={index}
-                                    onClick={() => loadPlay(play)}
-                                    className="bg-gray-200 p-2 rounded hover:bg-gray-300 text-left"
-                                >
-                                    {play.name}
-                                </button>
-                            ))}
-                        </div>
                     </div>
                 </div>
             );
