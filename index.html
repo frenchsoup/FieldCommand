@@ -207,10 +207,28 @@
                         >
                             Reset
                         </button>
+                        <button
+                            onClick={toggleSolidMode}
+                            className={`px-4 py-2 rounded ${isSolidMode ? 'bg-green-500 text-white' : 'bg-gray-200'} w-full`}
+                        >
+                            Solid Line {isSolidMode ? '(On)' : '(Off)'}
+                        </button>
+                        <button
+                            onClick={toggleDottedMode}
+                            className={`px-4 py-2 rounded ${isDottedMode ? 'bg-green-500 text-white' : 'bg-gray-200'} w-full`}
+                        >
+                            Dotted Line {isDottedMode ? '(On)' : '(Off)'}
+                        </button>
+                        <button
+                            onClick={clearLines}
+                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full"
+                        >
+                            Clear Lines
+                        </button>
                     </div>
 
                     {/* Center SVG Field */}
-                    <div className="flex-1 flex flex-col items-center">
+                    <div className="flex-1 flex items-center justify-center">
                         <svg 
                             width="600" 
                             height="450" 
@@ -287,42 +305,25 @@
                                 />
                             ))}
                         </svg>
-                        <div className="mt-4 w-full">
-                            <h2 className="text-lg font-semibold text-center">Saved Plays</h2>
-                            <div className="grid grid-cols-2 gap-2 mt-2">
+                    </div>
+
+                    {/* Right Sidebar */}
+                    <div className="w-1/4 p-4 flex flex-col gap-4">
+                        <h2 className="text-lg font-semibold text-center">Saved Plays</h2>
+                        <div className="flex-1 overflow-y-auto">
+                            <div className="grid grid-cols-1 gap-2">
                                 {savedPlays.map((play, index) => (
                                     <button 
                                         key={index}
                                         onClick={() => loadPlay(play)}
-                                        className="bg-gray-200 p-2 rounded hover:bg-gray-300 text-center"
+                                        className="bg-gray-200 p-1 rounded hover:bg-gray-300 text-sm truncate"
+                                        title={play.name}
                                     >
                                         {play.name}
                                     </button>
                                 ))}
                             </div>
                         </div>
-                    </div>
-
-                    {/* Right Sidebar */}
-                    <div className="w-1/4 p-4 flex flex-col gap-4">
-                        <button
-                            onClick={toggleSolidMode}
-                            className={`px-4 py-2 rounded ${isSolidMode ? 'bg-green-500 text-white' : 'bg-gray-200'} w-full`}
-                        >
-                            Solid Line {isSolidMode ? '(On)' : '(Off)'}
-                        </button>
-                        <button
-                            onClick={toggleDottedMode}
-                            className={`px-4 py-2 rounded ${isDottedMode ? 'bg-green-500 text-white' : 'bg-gray-200'} w-full`}
-                        >
-                            Dotted Line {isDottedMode ? '(On)' : '(Off)'}
-                        </button>
-                        <button
-                            onClick={clearLines}
-                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full"
-                        >
-                            Clear Lines
-                        </button>
                     </div>
                 </div>
             );
