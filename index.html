@@ -297,6 +297,11 @@
                 setLines(play.lines || []);
             };
 
+            const deletePlay = (index) => {
+                setSavedPlays(prev => prev.filter((_, i) => i !== index));
+                resetPositions();
+            };
+
             const resetPositions = () => {
                 setPositions(initialPositions);
                 setLines([]);
@@ -307,13 +312,19 @@
             };
 
             const toggleSolidMode = () => {
-                setIsSolidMode(prev => !prev);
-                if (isDottedMode) setIsDottedMode(false);
+                setIsSolidMode(prev => {
+                    const newState = !prev;
+                    if (newState) setIsDottedMode(false); // Turn off dotted if solid is on
+                    return newState;
+                });
             };
 
             const toggleDottedMode = () => {
-                setIsDottedMode(prev => !prev);
-                if (isSolidMode) setIsSolidMode(false);
+                setIsDottedMode(prev => {
+                    const newState = !prev;
+                    if (newState) setIsSolidMode(false); // Turn off solid if dotted is on
+                    return newState;
+                });
             };
 
             const handleMouseDown = (e) => {
@@ -397,7 +408,7 @@
                             onClick={resetPositions}
                             className="bg-gray-600 text-white px-4 py-3 rounded-lg text-base hover:bg-gray-700 transition"
                         >
-                            Reset
+                            Reset Play
                         </button>
                         <button
                             onClick={toggleSolidMode}
@@ -515,14 +526,21 @@
                         <div className="flex-1 overflow-y-auto">
                             <div className="grid grid-cols-1 gap-2">
                                 {savedPlays.map((play, index) => (
-                                    <button 
-                                        key={index}
-                                        onClick={() => loadPlay(play)}
-                                        className="bg-blue-100 p-2 rounded-lg hover:bg-blue-200 text-sm truncate transition text-gray-800"
-                                        title={play.name}
-                                    >
-                                        {play.name}
-                                    </button>
+                                    <div key={index} className="flex items-center gap-2">
+                                        <button 
+                                            onClick={() => loadPlay(play)}
+                                            className="flex-1 bg-blue-100 p-2 rounded-lg hover:bg-blue-200 text-sm truncate transition text-gray-800"
+                                            title={play.name}
+                                        >
+                                            {play.name}
+                                        </button>
+                                        <button 
+                                            onClick={() => deletePlay(index)}
+                                            className="bg-red-600 text-white px-2 py-1 rounded-lg text-sm hover:bg-red-700 transition"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
                                 ))}
                             </div>
                         </div>
