@@ -1,1 +1,3 @@
-# Baseball-Defensive-Coaching-Tool
+# FieldCommand
+Baseball Defensive Planner<br><br>
+Plan Winning Defensive Strategies. The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies - all in one tool.
