@@ -46,6 +46,13 @@
             background: #f8fafc;
             border-radius: 8px;
         }
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.875rem;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
         input, button, textarea {
             font-size: 16px;
         }
@@ -106,15 +113,93 @@
 </head>
 <body class="min-h-screen flex items-center justify-center">
     <div class="w-full max-w-[1200px] mx-auto p-4 md:p-6">
-        <div id="app">
+        <!-- Landing Section -->
+        <div class="text-center mb-6 md:mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                Welcome to <span class="title-highlight">FieldCommand</span>
+            </h1>
+            <p class="text-base md:text-lg text-gray-600 mb-4">
+                The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies—all in one tool.
+            </p>
+            <div id="email-gate" class="max-w-md mx-auto">
+                <form id="unlock-form" action="https://github.us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0" method="post" class="validate" novalidate>
+                    <input 
+                        type="email" 
+                        name="EMAIL" 
+                        id="unlock-email" 
+                        class="border border-gray-300 p-3 rounded-lg w-full mb-4 text-base focus:outline-none focus:ring-2 focus:ring-green-500" 
+                        placeholder="Enter your email to try free" 
+                        required 
+                    />
+                    <p id="email-error" class="error-message">Please enter a valid email address (e.g., user@domain.com).</p>
+                    <!-- Anti-bot field from Mailchimp -->
+                    <div style="position: absolute; left: -5000px;" aria-hidden="true">
+                        <input type="text" name="b_c3a7558bf8ddc22b2955671f5_1130a67a8c" tabindex="-1" value="">
+                    </div>
+                    <input 
+                        type="submit" 
+                        value="Start Planning" 
+                        class="bg-green-600 text-white px-6 py-3 rounded-lg w-full text-base hover:bg-green-700 transition cursor-pointer" 
+                    />
+                </form>
+                <p class="text-sm text-gray-500 mt-2">No credit card required—just your email to get started.</p>
+            </div>
+        </div>
+
+        <!-- App Container (Initially Hidden) -->
+        <div id="app" class="hidden">
             <div id="root"></div>
         </div>
     </div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useEffect } = React;
 
         const stripe = Stripe('pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5');
+
+        if (localStorage.getItem('fieldCommandUnlocked')) {
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('email-gate').classList.add('hidden');
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        document.getElementById('unlock-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('unlock-email').value;
+            const errorMessage = document.getElementById('email-error');
+
+            if (!emailRegex.test(email)) {
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            errorMessage.style.display = 'none';
+
+            gtag('event', 'unlock_app', {
+                'event_category': 'Engagement',
+                'event_label': 'Email Submission',
+                'method': 'form_submit'
+            });
+
+            const formData = new FormData();
+            formData.append('EMAIL', email);
+            formData.append('b_c3a7558bf8ddc22b2955671f5_1130a67a8c', '');
+
+            try {
+                await fetch('https://github.us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                });
+            } catch (error) {
+                console.error('Error submitting to Mailchimp:', error);
+            }
+
+            localStorage.setItem('fieldCommandUnlocked', 'true');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('email-gate').classList.add('hidden');
+        });
 
         const initialPositions = {
             pitcher: { x: 350, y: 308, label: 'P' },
@@ -168,7 +253,7 @@
                 e.preventDefault();
             }, []);
 
-            React.useEffect(() => {
+            useEffect(() => {
                 if (isDragging) {
                     document.addEventListener('mousemove', handleMove);
                     document.addEventListener('mouseup', handleEnd);
@@ -225,7 +310,7 @@
             const [showNotesModal, setShowNotesModal] = useState(false);
             const [currentPlayIndex, setCurrentPlayIndex] = useState(null);
             const [currentNotes, setCurrentNotes] = useState('');
-            const isPremium = true; // Hardcoded to true for preview testing
+            const isPremium = false; // Hardcoded to false to test premium features
 
             const getClientPosition = (e) => {
                 const isTouch = e.type.startsWith('touch');
@@ -252,7 +337,7 @@
                         name: playName, 
                         positions: { ...positions }, 
                         lines: [...lines], 
-                        notes: '' // Notes added via modal later
+                        notes: '' 
                     }];
                     setSavedPlays(newSavedPlays);
                     localStorage.setItem('savedPlays', JSON.stringify(newSavedPlays));
@@ -397,7 +482,7 @@
                 setCurrentNotes('');
             };
 
-            React.useEffect(() => {
+            useEffect(() => {
                 if (window.location.search.includes('premium_success=true')) {
                     localStorage.setItem('isPremium', 'true');
                     window.history.replaceState({}, document.title, window.location.pathname);
