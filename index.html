@@ -34,10 +34,61 @@
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center">
-    <div id="root"></div>
+    <div class="w-full max-w-[1200px] mx-auto p-6">
+        <!-- Landing Section -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                Welcome to <span class="title-highlight">FieldCommand</span>
+            </h1>
+            <p class="text-lg text-gray-600 mb-4">
+                The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies—all in one tool.
+            </p>
+            <div id="email-gate" class="max-w-md mx-auto">
+                <form id="unlock-form" action="https://example.com/signup" method="post" class="validate" target="_blank" novalidate>
+                    <input 
+                        type="email" 
+                        name="EMAIL" 
+                        id="unlock-email" 
+                        class="border border-gray-300 p-3 rounded-lg w-full mb-4 focus:outline-none focus:ring-2 focus:ring-green-500" 
+                        placeholder="Enter your email to try free" 
+                        required 
+                    />
+                    <input 
+                        type="submit" 
+                        value="Start Planning" 
+                        class="bg-green-600 text-white px-6 py-3 rounded-lg w-full hover:bg-green-700 transition cursor-pointer" 
+                    />
+                </form>
+                <p class="text-sm text-gray-500 mt-2">No credit card required—just your email to get started.</p>
+            </div>
+        </div>
+
+        <!-- App Container (Initially Hidden) -->
+        <div id="app" class="hidden">
+            <div id="root"></div>
+        </div>
+    </div>
 
     <script type="text/babel">
         const { useState } = React;
+
+        // Check if user has already "unlocked" the app
+        if (localStorage.getItem('fieldCommandUnlocked')) {
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('email-gate').classList.add('hidden');
+        }
+
+        // Handle email form submission
+        document.getElementById('unlock-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('unlock-email').value;
+            if (email) {
+                localStorage.setItem('fieldCommandUnlocked', 'true');
+                document.getElementById('app').classList.remove('hidden');
+                document.getElementById('email-gate').classList.add('hidden');
+                // Here you’d also send the email to your Mailchimp list (handled by form action)
+            }
+        });
 
         const initialPositions = {
             pitcher: { x: 350, y: 308, label: 'P' },
@@ -281,7 +332,7 @@
                             />
                             <path 
                                 d="M 350 425 L 250 325 L 350 225 L 450 325 Z" 
-                                fill="rgba(0, 128, 0, 0.8)"
+                                fill="rgba(0, 0, 0.8)"
                             />
                             <circle cx="350" cy="325" r="20" fill="burlywood" />
                             <rect x="340" y="320" width="20" height="5" fill="white" />
@@ -319,7 +370,7 @@
                                         y2={currentLine.end.y}
                                         stroke="black"
                                         strokeWidth="2"
-                                        strokeDasharray={line.type === 'dotted' ? '5,5' : 'none'}
+                                        strokeDasharray={currentLine.type === 'dotted' ? '5,5' : 'none'}
                                         markerEnd="url(#arrow)"
                                     />
                                 </g>
