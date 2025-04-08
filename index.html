@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FieldCommand: Baseball Defense Planner</title>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TLMQJ07R8K"></script>
@@ -21,6 +21,9 @@
         body {
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            overscroll-behavior: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .container {
             background: white;
@@ -46,16 +49,20 @@
             margin-bottom: 1rem;
             display: none;
         }
+        /* Prevent zooming on inputs for iOS */
+        input, button {
+            font-size: 16px; /* Minimum size to prevent zoom */
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center">
-    <div class="w-full max-w-[1200px] mx-auto p-6">
+    <div class="w-full max-w-[1200px] mx-auto p-4 md:p-6">
         <!-- Landing Section -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+        <div class="text-center mb-6 md:mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
                 Welcome to <span class="title-highlight">FieldCommand</span>
             </h1>
-            <p class="text-lg text-gray-600 mb-4">
+            <p class="text-base md:text-lg text-gray-600 mb-4">
                 The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies—all in one tool.
             </p>
             <div id="email-gate" class="max-w-md mx-auto">
@@ -64,7 +71,7 @@
                         type="email" 
                         name="EMAIL" 
                         id="unlock-email" 
-                        class="border border-gray-300 p-3 rounded-lg w-full mb-4 focus:outline-none focus:ring-2 focus:ring-green-500" 
+                        class="border border-gray-300 p-3 rounded-lg w-full mb-4 text-base focus:outline-none focus:ring-2 focus:ring-green-500" 
                         placeholder="Enter your email to try free" 
                         required 
                     />
@@ -76,7 +83,7 @@
                     <input 
                         type="submit" 
                         value="Start Planning" 
-                        class="bg-green-600 text-white px-6 py-3 rounded-lg w-full hover:bg-green-700 transition cursor-pointer" 
+                        class="bg-green-600 text-white px-6 py-3 rounded-lg w-full text-base hover:bg-green-700 transition cursor-pointer" 
                     />
                 </form>
                 <p class="text-sm text-gray-500 mt-2">No credit card required—just your email to get started.</p>
@@ -126,16 +133,15 @@
             // Prepare form data for Mailchimp
             const formData = new FormData();
             formData.append('EMAIL', email);
-            formData.append('b_c3a7558bf8ddc22b2955671f5_1130a67a8c', ''); // Anti-bot field
+            formData.append('b_c3a7558bf8ddc22b2955671f5_1130a67a8c', '');
 
             // Submit to Mailchimp via fetch
             try {
-                const response = await fetch('https://github.us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
+                await fetch('https://github.us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
                     method: 'POST',
                     body: formData,
-                    mode: 'no-cors' // Required for cross-origin request to Mailchimp
+                    mode: 'no-cors'
                 });
-                // Note: 'no-cors' means we can't check response status, but it will still submit
             } catch (error) {
                 console.error('Error submitting to Mailchimp:', error);
             }
@@ -166,40 +172,59 @@
         function DraggableMarker({ id, x, y, label, color, onDrag }) {
             const [isDragging, setIsDragging] = useState(false);
 
-            const handleMouseDown = (e) => {
+            const getClientPosition = (e) => {
+                const isTouch = e.type.startsWith('touch');
+                return {
+                    x: isTouch ? e.touches[0].clientX : e.clientX,
+                    y: isTouch ? e.touches[0].clientY : e.clientY
+                };
+            };
+
+            const handleStart = (e) => {
                 setIsDragging(true);
                 e.preventDefault();
                 e.stopPropagation();
             };
 
-            const handleMouseMove = React.useCallback((e) => {
+            const handleMove = React.useCallback((e) => {
                 if (isDragging) {
+                    const { x, y } = getClientPosition(e);
                     const svg = document.querySelector('svg');
                     const pt = svg.createSVGPoint();
-                    pt.x = e.clientX;
-                    pt.y = e.clientY;
+                    pt.x = x;
+                    pt.y = y;
                     const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
                     onDrag(id, transformed.x, transformed.y);
+                    e.preventDefault();
                 }
             }, [isDragging, id, onDrag]);
 
-            const handleMouseUp = React.useCallback(() => {
+            const handleEnd = React.useCallback((e) => {
                 setIsDragging(false);
+                e.preventDefault();
             }, []);
 
             React.useEffect(() => {
                 if (isDragging) {
-                    document.addEventListener('mousemove', handleMouseMove);
-                    document.addEventListener('mouseup', handleMouseUp);
+                    document.addEventListener('mousemove', handleMove);
+                    document.addEventListener('mouseup', handleEnd);
+                    document.addEventListener('touchmove', handleMove, { passive: false });
+                    document.addEventListener('touchend', handleEnd);
                 }
                 return () => {
-                    document.removeEventListener('mousemove', handleMouseMove);
-                    document.removeEventListener('mouseup', handleMouseUp);
+                    document.removeEventListener('mousemove', handleMove);
+                    document.removeEventListener('mouseup', handleEnd);
+                    document.removeEventListener('touchmove', handleMove);
+                    document.removeEventListener('touchend', handleEnd);
                 };
-            }, [isDragging, handleMouseMove, handleMouseUp]);
+            }, [isDragging, handleMove, handleEnd]);
 
             return (
-                <g onMouseDown={handleMouseDown} className="cursor-move">
+                <g 
+                    onMouseDown={handleStart} 
+                    onTouchStart={handleStart} 
+                    className="cursor-move touch-none"
+                >
                     <circle 
                         cx={x} 
                         cy={y} 
@@ -232,6 +257,14 @@
             const [drawing, setDrawing] = useState(false);
             const [currentLine, setCurrentLine] = useState(null);
             const [lines, setLines] = useState([]);
+
+            const getClientPosition = (e) => {
+                const isTouch = e.type.startsWith('touch');
+                return {
+                    x: isTouch ? e.touches[0].clientX : e.clientX,
+                    y: isTouch ? e.touches[0].clientY : e.clientY
+                };
+            };
 
             const handleDrag = (id, newX, newY) => {
                 setPositions(prev => ({
@@ -275,9 +308,10 @@
                 if (!isSolidMode && !isDottedMode) return;
 
                 const svg = e.currentTarget;
+                const { x, y } = getClientPosition(e);
                 const pt = svg.createSVGPoint();
-                pt.x = e.clientX;
-                pt.y = e.clientY;
+                pt.x = x;
+                pt.y = y;
                 const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
                 
                 setDrawing(true);
@@ -286,20 +320,23 @@
                     end: { x: transformed.x, y: transformed.y },
                     type: isSolidMode ? 'solid' : 'dotted'
                 });
+                e.preventDefault();
             };
 
             const handleMouseMove = (e) => {
                 if (drawing) {
                     const svg = document.querySelector('svg');
+                    const { x, y } = getClientPosition(e);
                     const pt = svg.createSVGPoint();
-                    pt.x = e.clientX;
-                    pt.y = e.clientY;
+                    pt.x = x;
+                    pt.y = y;
                     const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
                     
                     setCurrentLine(prev => ({
                         ...prev,
                         end: { x: transformed.x, y: transformed.y }
                     }));
+                    e.preventDefault();
                 }
             };
 
@@ -318,11 +355,11 @@
             };
 
             return (
-                <div className="container p-6 w-full max-w-[1200px] h-[600px] flex gap-4">
+                <div className="container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4 min-h-[600px]">
                     {/* Left Sidebar */}
-                    <div className="w-1/4 p-4 flex flex-col gap-4 sidebar flex-1">
+                    <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
                         <div className="text-center">
-                            <h1 className="text-2xl font-bold title-highlight">FieldCommand</h1>
+                            <h1 className="text-xl md:text-2xl font-bold title-highlight">FieldCommand</h1>
                             <p className="text-sm text-gray-600 mt-1">Baseball Defense Planner</p>
                             <p className="text-xs text-gray-500 mt-1">Plan Winning Defensive Strategies</p>
                         </div>
@@ -331,51 +368,55 @@
                             value={playName}
                             onChange={(e) => setPlayName(e.target.value)}
                             placeholder="Enter play name"
-                            className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            className="border border-gray-300 p-3 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-green-500"
                         />
                         <button 
                             onClick={savePlay}
-                            className="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition"
+                            className="bg-green-600 text-white px-4 py-3 rounded-lg text-base hover:bg-green-700 transition"
                         >
                             Save Play
                         </button>
                         <button 
                             onClick={resetPositions}
-                            className="bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition"
+                            className="bg-gray-600 text-white px-4 py-3 rounded-lg text-base hover:bg-gray-700 transition"
                         >
                             Reset
                         </button>
                         <button
                             onClick={toggleSolidMode}
-                            className={`px-4 py-3 rounded-lg ${isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition`}
+                            className={`px-4 py-3 rounded-lg text-base ${isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition`}
                         >
                             Solid Line {isSolidMode ? '(On)' : '(Off)'}
                         </button>
                         <button
                             onClick={toggleDottedMode}
-                            className={`px-4 py-3 rounded-lg ${isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition`}
+                            className={`px-4 py-3 rounded-lg text-base ${isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition`}
                         >
                             Dotted Line {isDottedMode ? '(On)' : '(Off)'}
                         </button>
                         <button
                             onClick={clearLines}
-                            className="bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition"
+                            className="bg-red-600 text-white px-4 py-3 rounded-lg text-base hover:bg-red-700 transition"
                         >
                             Clear Lines
                         </button>
                     </div>
 
                     {/* Center SVG Field */}
-                    <div className="flex-1 flex justify-center">
+                    <div className="flex-1 flex justify-center w-full">
                         <svg 
-                            width="600" 
-                            height="450" 
+                            width="100%" 
+                            height="auto" 
                             viewBox="150 25 400 450" 
-                            className="border rounded-lg svg-shadow" 
-                            style={{ backgroundColor: 'rgba(0, 128, 0, 0.8)' }} 
+                            preserveAspectRatio="xMidYMid meet"
+                            className="border rounded-lg svg-shadow w-full max-w-[600px] h-auto" 
+                            style={{ backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' }} 
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}
+                            onTouchStart={handleMouseDown}
+                            onTouchMove={handleMouseMove}
+                            onTouchEnd={handleMouseUp}
                         >
                             <defs>
                                 <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
@@ -446,7 +487,7 @@
                     </div>
 
                     {/* Right Sidebar */}
-                    <div className="w-1/4 p-4 flex flex-col gap-4 sidebar flex-1">
+                    <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
                         <h2 className="text-lg font-semibold text-gray-800 text-center border-b border-gray-200 pb-2">Saved Plays</h2>
                         <div className="flex-1 overflow-y-auto">
                             <div className="grid grid-cols-1 gap-2">
