@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FieldCommand: Baseball Defense Planner</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TLMQJ07R8K"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-TLMQJ07R8K');
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
@@ -31,6 +39,13 @@
             background: #f8fafc;
             border-radius: 8px;
         }
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.875rem;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center">
@@ -44,7 +59,7 @@
                 The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies—all in one tool.
             </p>
             <div id="email-gate" class="max-w-md mx-auto">
-                <form id="unlock-form" action="https://example.com/signup" method="post" class="validate" target="_blank" novalidate>
+                <form id="unlock-form" action="https://github.us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0" method="post" class="validate" novalidate>
                     <input 
                         type="email" 
                         name="EMAIL" 
@@ -53,6 +68,11 @@
                         placeholder="Enter your email to try free" 
                         required 
                     />
+                    <p id="email-error" class="error-message">Please enter a valid email address (e.g., user@domain.com).</p>
+                    <!-- Anti-bot field from Mailchimp -->
+                    <div style="position: absolute; left: -5000px;" aria-hidden="true">
+                        <input type="text" name="b_c3a7558bf8ddc22b2955671f5_1130a67a8c" tabindex="-1" value="">
+                    </div>
                     <input 
                         type="submit" 
                         value="Start Planning" 
@@ -78,16 +98,52 @@
             document.getElementById('email-gate').classList.add('hidden');
         }
 
-        // Handle email form submission
-        document.getElementById('unlock-form').addEventListener('submit', (e) => {
+        // Email validation regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        // Handle email form submission with validation and fetch to Mailchimp
+        document.getElementById('unlock-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('unlock-email').value;
-            if (email) {
-                localStorage.setItem('fieldCommandUnlocked', 'true');
-                document.getElementById('app').classList.remove('hidden');
-                document.getElementById('email-gate').classList.add('hidden');
-                // Here you’d also send the email to your Mailchimp list (handled by form action)
+            const errorMessage = document.getElementById('email-error');
+
+            // Validate email
+            if (!emailRegex.test(email)) {
+                errorMessage.style.display = 'block';
+                return;
             }
+
+            // Hide error if valid
+            errorMessage.style.display = 'none';
+
+            // Track form submission in Google Analytics
+            gtag('event', 'unlock_app', {
+                'event_category': 'Engagement',
+                'event_label': 'Email Submission',
+                'method': 'form_submit'
+            });
+
+            // Prepare form data for Mailchimp
+            const formData = new FormData();
+            formData.append('EMAIL', email);
+            formData.append('b_c3a7558bf8ddc22b2955671f5_1130a67a8c', ''); // Anti-bot field
+
+            // Submit to Mailchimp via fetch
+            try {
+                const response = await fetch('https://github.us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors' // Required for cross-origin request to Mailchimp
+                });
+                // Note: 'no-cors' means we can't check response status, but it will still submit
+            } catch (error) {
+                console.error('Error submitting to Mailchimp:', error);
+            }
+
+            // Unlock the app locally
+            localStorage.setItem('fieldCommandUnlocked', 'true');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('email-gate').classList.add('hidden');
         });
 
         const initialPositions = {
@@ -332,7 +388,7 @@
                             />
                             <path 
                                 d="M 350 425 L 250 325 L 350 225 L 450 325 Z" 
-                                fill="rgba(0, 0, 0.8)"
+                                fill="rgba(0, 128, 0, 0.8)"
                             />
                             <circle cx="350" cy="325" r="20" fill="burlywood" />
                             <rect x="340" y="320" width="20" height="5" fill="white" />
