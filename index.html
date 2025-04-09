@@ -287,11 +287,12 @@
                 formData.append('b_c3a7558bf8ddc22b2955671f5_1130a67a8c', '');
 
                 try {
-                    await fetch('https://github.us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
+                    await fetch('https://us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
                         method: 'POST',
                         body: formData,
                         mode: 'no-cors'
                     });
+                    console.log('Email submitted to Mailchimp:', email);
                 } catch (error) {
                     console.error('Error submitting to Mailchimp:', error);
                 }
