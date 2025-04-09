@@ -431,11 +431,21 @@
             const handleGoPremium = async (plan) => {
                 try {
                     const stripeInstance = await stripePromise;
-                    const priceId = plan === 'annual' ? 'price_1RBeT4B311TbF661BchpXFF1' : 'price_1RBeSTB311TbF661Wzqqc3OW';
+                    let priceId, mode;
+                    if (plan === 'monthly') {
+                        priceId = 'price_1RBeSTB311TbF661Wzqqc3OW';
+                        mode = 'subscription';
+                    } else if (plan === 'annual') {
+                        priceId = 'price_1RBeT4B311TbF661BchpXFF1';
+                        mode = 'subscription';
+                    } else if (plan === 'onetime') {
+                        priceId = 'price_1RBoExB311TbF661pkuJDeP5';
+                        mode = 'payment';
+                    }
                     console.log(`Initiating checkout for ${plan} with price ID: ${priceId}`);
                     const result = await stripeInstance.redirectToCheckout({
                         lineItems: [{ price: priceId, quantity: 1 }],
-                        mode: 'subscription',
+                        mode: mode,
                         successUrl: window.location.href + '?premium_success=true',
                         cancelUrl: window.location.href
                     });
@@ -702,15 +712,21 @@
                                         <p className="text-gray-600 mb-4">Unlock saving plays, drawing lines, and adding notes!</p>
                                         <button
                                             onClick={() => handleGoPremium('monthly')}
-                                            className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                                            className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mb-2"
                                         >
                                             $4.99/month
                                         </button>
                                         <button
                                             onClick={() => handleGoPremium('annual')}
-                                            className="block mx-auto mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                                            className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mb-2"
                                         >
                                             $39.99/year (Save 33%)
+                                        </button>
+                                        <button
+                                            onClick={() => handleGoPremium('onetime')}
+                                            className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mb-2"
+                                        >
+                                            $74.99 One-Time Full Access
                                         </button>
                                         <div className="flex justify-center mt-4">
                                             <button
