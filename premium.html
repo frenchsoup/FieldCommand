@@ -318,7 +318,7 @@
             const [showNotesModal, setShowNotesModal] = useState(false);
             const [currentPlayIndex, setCurrentPlayIndex] = useState(null);
             const [currentNotes, setCurrentNotes] = useState('');
-            const isPremium = false; // Hardcoded to false to test premium access
+            const [isPremium, setIsPremium] = useState(localStorage.getItem('isPremium') === 'true');
 
             const getClientPosition = (e) => {
                 const isTouch = e.type.startsWith('touch');
@@ -502,6 +502,7 @@
             useEffect(() => {
                 if (window.location.search.includes('premium_success=true')) {
                     localStorage.setItem('isPremium', 'true');
+                    setIsPremium(true); // Update state to trigger re-render
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             }, []);
