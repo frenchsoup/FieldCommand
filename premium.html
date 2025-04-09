@@ -113,7 +113,6 @@
 </head>
 <body class="min-h-screen flex items-center justify-center">
     <div class="w-full max-w-[1200px] mx-auto p-4 md:p-6">
-        <!-- Landing Section -->
         <div class="text-center mb-6 md:mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
                 Welcome to <span class="title-highlight">FieldCommand</span>
@@ -132,7 +131,6 @@
                         required 
                     />
                     <p id="email-error" class="error-message">Please enter a valid email address (e.g., user@domain.com).</p>
-                    <!-- Anti-bot field from Mailchimp -->
                     <div style="position: absolute; left: -5000px;" aria-hidden="true">
                         <input type="text" name="b_c3a7558bf8ddc22b2955671f5_1130a67a8c" tabindex="-1" value="">
                     </div>
@@ -146,7 +144,6 @@
             </div>
         </div>
 
-        <!-- App Container (Initially Hidden) -->
         <div id="app" class="hidden">
             <div id="root"></div>
         </div>
@@ -155,7 +152,19 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const stripe = Stripe('pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5');
+        // Ensure Stripe is loaded before using it
+        let stripe;
+        const stripePromise = new Promise((resolve) => {
+            const checkStripe = () => {
+                if (window.Stripe) {
+                    stripe = window.Stripe('pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5');
+                    resolve(stripe);
+                } else {
+                    setTimeout(checkStripe, 100);
+                }
+            };
+            checkStripe();
+        });
 
         if (localStorage.getItem('fieldCommandUnlocked')) {
             document.getElementById('app').classList.remove('hidden');
@@ -448,16 +457,25 @@
                 setCurrentLine(null);
             };
 
-            const handleGoPremium = (plan) => {
-                const priceId = plan === 'annual' ? 'price_1RBeT4B311TbF661BchpXFF1' : 'price_1RBeSTB311TbF661Wzqqc3OW';
-                stripe.redirectToCheckout({
-                    lineItems: [{ price: priceId, quantity: 1 }],
-                    mode: 'subscription',
-                    successUrl: window.location.href + '?premium_success=true',
-                    cancelUrl: window.location.href
-                }).then(result => {
-                    if (result.error) console.error(result.error.message);
-                });
+            const handleGoPremium = async (plan) => {
+                try {
+                    const stripeInstance = await stripePromise;
+                    const priceId = plan === 'annual' ? 'price_1RBeT4B311TbF661BchpXFF1' : 'price_1RBeSTB311TbF661Wzqqc3OW';
+                    console.log(`Initiating checkout for ${plan} with price ID: ${priceId}`);
+                    const result = await stripeInstance.redirectToCheckout({
+                        lineItems: [{ price: priceId, quantity: 1 }],
+                        mode: 'subscription',
+                        successUrl: window.location.href + '?premium_success=true',
+                        cancelUrl: window.location.href
+                    });
+                    if (result.error) {
+                        console.error('Stripe checkout error:', result.error.message);
+                        alert('Failed to initiate checkout: ' + result.error.message);
+                    }
+                } catch (error) {
+                    console.error('Error in handleGoPremium:', error);
+                    alert('An error occurred while processing your request. Please try again.');
+                }
             };
 
             const openNotesModal = (index) => {
