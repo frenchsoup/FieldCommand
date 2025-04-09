@@ -13,12 +13,13 @@
     <link rel="preconnect" href="https://js.stripe.com">
     <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TLMQJ07R8K"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KCRLDQSSEY"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-TLMQJ07R8K');
+      gtag('config', 'G-KCRLDQSSEY');
     </script>
     <script src="https://js.stripe.com/v3/"></script>
     <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
@@ -264,6 +265,14 @@
                 };
             };
 
+            const triggerPremiumModal = () => {
+                gtag('event', 'premium_modal_view', {
+                    'event_category': 'Premium',
+                    'event_label': 'Premium Modal Displayed'
+                });
+                setShowPremiumModal(true);
+            };
+
             const handleEmailSubmit = async (e) => {
                 e.preventDefault();
                 const email = e.target.querySelector('#unlock-email').value;
@@ -276,10 +285,9 @@
 
                 errorMessage.style.display = 'none';
 
-                gtag('event', 'unlock_app', {
+                gtag('event', 'unlock_app_attempt', {
                     'event_category': 'Engagement',
-                    'event_label': 'Email Submission',
-                    'method': 'form_submit'
+                    'event_label': 'Email Submission Attempt'
                 });
 
                 const formData = new FormData();
@@ -293,8 +301,17 @@
                         mode: 'no-cors'
                     });
                     console.log('Email submitted to Mailchimp:', email);
+                    gtag('event', 'unlock_app_success', {
+                        'event_category': 'Engagement',
+                        'event_label': 'Email Submission Success',
+                        'value': 1
+                    });
                 } catch (error) {
                     console.error('Error submitting to Mailchimp:', error);
+                    gtag('event', 'unlock_app_error', {
+                        'event_category': 'Engagement',
+                        'event_label': 'Email Submission Error'
+                    });
                 }
 
                 localStorage.setItem('fieldCommandUnlocked', 'true');
@@ -310,7 +327,7 @@
 
             const savePlay = () => {
                 if (!isPremium) {
-                    setShowPremiumModal(true);
+                    triggerPremiumModal();
                     return;
                 }
                 if (playName) {
@@ -351,7 +368,7 @@
 
             const toggleSolidMode = () => {
                 if (!isPremium) {
-                    setShowPremiumModal(true);
+                    triggerPremiumModal();
                     return;
                 }
                 setIsSolidMode(prev => {
@@ -363,7 +380,7 @@
 
             const toggleDottedMode = () => {
                 if (!isPremium) {
-                    setShowPremiumModal(true);
+                    triggerPremiumModal();
                     return;
                 }
                 setIsDottedMode(prev => {
@@ -430,6 +447,12 @@
             };
 
             const handleGoPremium = async (plan) => {
+                gtag('event', 'premium_interest', {
+                    'event_category': 'Premium',
+                    'event_label': `Go Premium Clicked - ${plan}`,
+                    'value': plan === 'monthly' ? 4.99 : plan === 'annual' ? 39.99 : 74.99
+                });
+
                 try {
                     const stripeInstance = await stripePromise;
                     let priceId, mode;
@@ -443,7 +466,7 @@
                         priceId = 'price_1RBoExB311TbF661pkuJDeP5';
                         mode = 'payment';
                     }
-                    console.log(`Initiating checkout for ${plan} with price ID: ${priceId}`);
+                    localStorage.setItem('lastPremiumPlan', plan);
                     const result = await stripeInstance.redirectToCheckout({
                         lineItems: [{ price: priceId, quantity: 1 }],
                         mode: mode,
@@ -462,7 +485,7 @@
 
             const openNotesModal = (index) => {
                 if (!isPremium) {
-                    setShowPremiumModal(true);
+                    triggerPremiumModal();
                     return;
                 }
                 setCurrentPlayIndex(index);
@@ -484,6 +507,12 @@
 
             useEffect(() => {
                 if (window.location.search.includes('premium_success=true')) {
+                    gtag('event', 'purchase', {
+                        'event_category': 'Ecommerce',
+                        'event_label': 'Premium Purchase',
+                        'value': localStorage.getItem('lastPremiumPlan') === 'monthly' ? 4.99 : localStorage.getItem('lastPremiumPlan') === 'annual' ? 39.99 : 74.99,
+                        'currency': 'USD'
+                    });
                     localStorage.setItem('isPremium', 'true');
                     setIsPremium(true);
                     setShowEmailGate(false);
