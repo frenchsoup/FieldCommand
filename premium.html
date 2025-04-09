@@ -152,7 +152,6 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Ensure Stripe is loaded before using it
         let stripe;
         const stripePromise = new Promise((resolve) => {
             const checkStripe = () => {
@@ -578,7 +577,7 @@
                         <div className="flex-1 flex justify-center w-full">
                             <svg 
                                 width="100%" 
-                                height="auto" 
+                                height="100%" 
                                 viewBox="150 25 400 450" 
                                 preserveAspectRatio="xMidYMid meet"
                                 className="border rounded-lg svg-shadow w-full max-w-[600px] h-auto" 
