@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FieldCommand: Baseball Defense Planner</title>
+    <meta name="description" content="FieldCommand: Plan baseball defense strategies with ease. Position players, draw plays, and save your work.">
+    <meta name="keywords" content="baseball, defense planner, coaching tool, FieldCommand">
     <meta property="og:title" content="⚾ FieldCommand: Baseball Defense Planner">
     <meta property="og:description" content="Plan baseball plays with ease! ⚾ Draw strategies and position players on your iPad or phone.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://username.github.io/fieldcommand">
+    <title>FieldCommand: Baseball Defense Planner</title>
+    <link rel="preconnect" href="https://js.stripe.com">
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TLMQJ07R8K"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -113,7 +118,7 @@
 </head>
 <body class="min-h-screen flex items-center justify-center">
     <div class="w-full max-w-[1200px] mx-auto p-4 md:p-6">
-        <div id="root"></div>
+        <div id="root" role="application" aria-label="FieldCommand Baseball Defense Planner"></div>
     </div>
 
     <script type="text/babel">
@@ -206,6 +211,9 @@
                     onMouseDown={handleStart} 
                     onTouchStart={handleStart} 
                     className="cursor-move touch-none"
+                    tabIndex="0"
+                    role="button"
+                    aria-label={`${label} marker at position ${x},${y}`}
                 >
                     <circle 
                         cx={x} 
@@ -485,6 +493,7 @@
                     {showEmailGate ? (
                         <div className="max-w-md mx-auto">
                             <form onSubmit={handleEmailSubmit} className="validate" noValidate>
+                                <label htmlFor="unlock-email" className="sr-only">Email</label>
                                 <input 
                                     type="email" 
                                     name="EMAIL" 
