@@ -113,40 +113,7 @@
 </head>
 <body class="min-h-screen flex items-center justify-center">
     <div class="w-full max-w-[1200px] mx-auto p-4 md:p-6">
-        <div class="text-center mb-6 md:mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-                Welcome to <span class="title-highlight">FieldCommand</span>
-            </h1>
-            <p class="text-base md:text-lg text-gray-600 mb-4">
-                The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies—all in one tool.
-            </p>
-            <div id="email-gate" class="max-w-md mx-auto">
-                <form id="unlock-form" action="https://github.us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0" method="post" class="validate" novalidate>
-                    <input 
-                        type="email" 
-                        name="EMAIL" 
-                        id="unlock-email" 
-                        class="border border-gray-300 p-3 rounded-lg w-full mb-4 text-base focus:outline-none focus:ring-2 focus:ring-green-500" 
-                        placeholder="Enter your email to try free" 
-                        required 
-                    />
-                    <p id="email-error" class="error-message">Please enter a valid email address (e.g., user@domain.com).</p>
-                    <div style="position: absolute; left: -5000px;" aria-hidden="true">
-                        <input type="text" name="b_c3a7558bf8ddc22b2955671f5_1130a67a8c" tabindex="-1" value="">
-                    </div>
-                    <input 
-                        type="submit" 
-                        value="Start Planning" 
-                        class="bg-green-600 text-white px-6 py-3 rounded-lg w-full text-base hover:bg-green-700 transition cursor-pointer" 
-                    />
-                </form>
-                <p class="text-sm text-gray-500 mt-2">No credit card required—just your email to get started.</p>
-            </div>
-        </div>
-
-        <div id="app" class="hidden">
-            <div id="root"></div>
-        </div>
+        <div id="root"></div>
     </div>
 
     <script type="text/babel">
@@ -165,49 +132,7 @@
             checkStripe();
         });
 
-        if (localStorage.getItem('fieldCommandUnlocked')) {
-            document.getElementById('app').classList.remove('hidden');
-            document.getElementById('email-gate').classList.add('hidden');
-        }
-
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        document.getElementById('unlock-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('unlock-email').value;
-            const errorMessage = document.getElementById('email-error');
-
-            if (!emailRegex.test(email)) {
-                errorMessage.style.display = 'block';
-                return;
-            }
-
-            errorMessage.style.display = 'none';
-
-            gtag('event', 'unlock_app', {
-                'event_category': 'Engagement',
-                'event_label': 'Email Submission',
-                'method': 'form_submit'
-            });
-
-            const formData = new FormData();
-            formData.append('EMAIL', email);
-            formData.append('b_c3a7558bf8ddc22b2955671f5_1130a67a8c', '');
-
-            try {
-                await fetch('https://github.us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors'
-                });
-            } catch (error) {
-                console.error('Error submitting to Mailchimp:', error);
-            }
-
-            localStorage.setItem('fieldCommandUnlocked', 'true');
-            document.getElementById('app').classList.remove('hidden');
-            document.getElementById('email-gate').classList.add('hidden');
-        });
 
         const initialPositions = {
             pitcher: { x: 350, y: 308, label: 'P' },
@@ -319,6 +244,9 @@
             const [currentPlayIndex, setCurrentPlayIndex] = useState(null);
             const [currentNotes, setCurrentNotes] = useState('');
             const [isPremium, setIsPremium] = useState(localStorage.getItem('isPremium') === 'true');
+            const [showEmailGate, setShowEmailGate] = useState(
+                localStorage.getItem('fieldCommandUnlocked') !== 'true' && !isPremium
+            );
 
             const getClientPosition = (e) => {
                 const isTouch = e.type.startsWith('touch');
@@ -326,6 +254,42 @@
                     x: isTouch ? e.touches[0].clientX : e.clientX,
                     y: isTouch ? e.touches[0].clientY : e.clientY
                 };
+            };
+
+            const handleEmailSubmit = async (e) => {
+                e.preventDefault();
+                const email = e.target.querySelector('#unlock-email').value;
+                const errorMessage = e.target.querySelector('#email-error');
+
+                if (!emailRegex.test(email)) {
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+
+                errorMessage.style.display = 'none';
+
+                gtag('event', 'unlock_app', {
+                    'event_category': 'Engagement',
+                    'event_label': 'Email Submission',
+                    'method': 'form_submit'
+                });
+
+                const formData = new FormData();
+                formData.append('EMAIL', email);
+                formData.append('b_c3a7558bf8ddc22b2955671f5_1130a67a8c', '');
+
+                try {
+                    await fetch('https://github.us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
+                        method: 'POST',
+                        body: formData,
+                        mode: 'no-cors'
+                    });
+                } catch (error) {
+                    console.error('Error submitting to Mailchimp:', error);
+                }
+
+                localStorage.setItem('fieldCommandUnlocked', 'true');
+                setShowEmailGate(false);
             };
 
             const handleDrag = (id, newX, newY) => {
@@ -502,7 +466,8 @@
             useEffect(() => {
                 if (window.location.search.includes('premium_success=true')) {
                     localStorage.setItem('isPremium', 'true');
-                    setIsPremium(true); // Update state to trigger re-render
+                    setIsPremium(true);
+                    setShowEmailGate(false);
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             }, []);
@@ -513,242 +478,268 @@
                         <h1 className="text-3xl md:text-4xl font-bold title-highlight">FieldCommand</h1>
                         <p className="text-lg text-gray-600 mt-2">Baseball Defense Planner</p>
                     </div>
-                    <div className="container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4 min-h-[600px]">
-                        <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
-                            <div className="text-center">
-                                <h1 className="text-xl md:text-2xl font-bold title-highlight">FieldCommand</h1>
-                                <p className="text-sm text-gray-600 mt-1">Baseball Defense Planner</p>
-                                <p className="text-xs text-gray-500 mt-1">Plan Winning Defensive Strategies</p>
-                            </div>
-                            <input 
-                                type="text" 
-                                value={playName}
-                                onChange={(e) => setPlayName(e.target.value)}
-                                placeholder="Enter play name"
-                                className="border border-gray-300 p-3 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-green-500"
-                            />
-                            <button 
-                                onClick={savePlay}
-                                className={`px-4 py-3 rounded-lg text-base ${isPremium ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} transition`}
-                            >
-                                Save Play {isPremium ? '' : '(Premium)'}
-                            </button>
-                            <button 
-                                onClick={resetPositions}
-                                className="bg-gray-600 text-white px-4 py-3 rounded-lg text-base hover:bg-gray-700 transition"
-                            >
-                                Reset Play
-                            </button>
-                            <button
-                                onClick={toggleSolidMode}
-                                className={`px-4 py-3 rounded-lg text-base ${isPremium ? (isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800') : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} hover:bg-green-700 hover:text-white transition`}
-                            >
-                                Solid Line {isSolidMode ? '(On)' : '(Off)'} {isPremium ? '' : '(Premium)'}
-                            </button>
-                            <button
-                                onClick={toggleDottedMode}
-                                className={`px-4 py-3 rounded-lg text-base ${isPremium ? (isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800') : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} hover:bg-green-700 hover:text-white transition`}
-                            >
-                                Dotted Line {isDottedMode ? '(On)' : '(Off)'} {isPremium ? '' : '(Premium)'}
-                            </button>
-                            <div className="split-button">
-                                <button
-                                    onClick={undoLine}
-                                    className="bg-gray-600 text-white px-4 py-3 text-base hover:bg-gray-700 transition"
-                                >
-                                    Undo
-                                </button>
-                                <button
-                                    onClick={resetLines}
-                                    className="bg-gray-600 text-white px-4 py-3 text-base hover:bg-gray-700 transition"
-                                >
-                                    Reset Lines
-                                </button>
-                            </div>
-                            {!isPremium && (
-                                <button
-                                    onClick={() => setShowPremiumModal(true)}
-                                    className="bg-blue-600 text-white px-4 py-3 rounded-lg text-base hover:bg-blue-700 transition"
-                                >
-                                    Go Premium
-                                </button>
-                            )}
+                    {showEmailGate ? (
+                        <div className="max-w-md mx-auto">
+                            <form onSubmit={handleEmailSubmit} className="validate" noValidate>
+                                <input 
+                                    type="email" 
+                                    name="EMAIL" 
+                                    id="unlock-email" 
+                                    defaultValue=""
+                                    className="border border-gray-300 p-3 rounded-lg w-full mb-4 text-base focus:outline-none focus:ring-2 focus:ring-green-500" 
+                                    placeholder="Enter your email to try free" 
+                                    required 
+                                />
+                                <p id="email-error" className="error-message">Please enter a valid email address (e.g., user@domain.com).</p>
+                                <div style={{ position: 'absolute', left: '-5000px' }} aria-hidden="true">
+                                    <input type="text" name="b_c3a7558bf8ddc22b2955671f5_1130a67a8c" tabIndex="-1" defaultValue="" />
+                                </div>
+                                <input 
+                                    type="submit" 
+                                    value="Start Planning" 
+                                    className="bg-green-600 text-white px-6 py-3 rounded-lg w-full text-base hover:bg-green-700 transition cursor-pointer" 
+                                />
+                            </form>
+                            <p className="text-sm text-gray-500 mt-2">No credit card required—just your email to get started.</p>
                         </div>
-
-                        <div className="flex-1 flex justify-center w-full">
-                            <svg 
-                                width="100%" 
-                                height="100%" 
-                                viewBox="150 25 400 450" 
-                                preserveAspectRatio="xMidYMid meet"
-                                className="border rounded-lg svg-shadow w-full max-w-[600px] h-auto" 
-                                style={{ backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' }} 
-                                onMouseDown={handleMouseDown}
-                                onMouseMove={handleMouseMove}
-                                onMouseUp={handleMouseUp}
-                                onTouchStart={handleMouseDown}
-                                onTouchMove={handleMouseMove}
-                                onTouchEnd={handleMouseUp}
-                            >
-                                <defs>
-                                    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-                                        <path d="M0,0 L0,6 L9,3 Z" fill="black" />
-                                    </marker>
-                                </defs>
-                                <path 
-                                    d="M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z" 
-                                    fill="burlywood"
+                    ) : (
+                        <div className="container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4 min-h-[600px]">
+                            <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
+                                <div className="text-center">
+                                    <h1 className="text-xl md:text-2xl font-bold title-highlight">FieldCommand</h1>
+                                    <p className="text-sm text-gray-600 mt-1">Baseball Defense Planner</p>
+                                    <p className="text-xs text-gray-500 mt-1">Plan Winning Defensive Strategies</p>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    value={playName}
+                                    onChange={(e) => setPlayName(e.target.value)}
+                                    placeholder="Enter play name"
+                                    className="border border-gray-300 p-3 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
-                                <path 
-                                    d="M 350 425 L 250 325 L 350 225 L 450 325 Z" 
-                                    fill="rgba(0, 128, 0, 0.8)"
-                                />
-                                <circle cx="350" cy="325" r="20" fill="burlywood" />
-                                <rect x="340" y="320" width="20" height="5" fill="white" />
-                                <path 
-                                    d="M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z" 
-                                    fill="white"
-                                />
-                                <rect x="240" y="315" width="15" height="15" fill="white" transform="rotate(45 250 325)" />
-                                <rect x="340" y="215" width="15" height="15" fill="white" transform="rotate(45 350 225)" />
-                                <rect x="440" y="315" width="15" height="15" fill="white" transform="rotate(45 450 325)" />
-                                <line x1="350" y1="425" x2="250" y2="325" stroke="white" strokeWidth="2" />
-                                <line x1="250" y1="325" x2="350" y2="225" stroke="white" strokeWidth="2" />
-                                <line x1="350" y1="225" x2="450" y2="325" stroke="white" strokeWidth="2" />
-                                <line x1="450" y1="325" x2="350" y2="425" stroke="white" strokeWidth="2" />
-                                {lines.map((line, index) => (
-                                    <g key={index}>
-                                        <line
-                                            x1={line.start.x}
-                                            y1={line.start.y}
-                                            x2={line.end.x}
-                                            y2={line.end.y}
-                                            stroke="black"
-                                            strokeWidth="2"
-                                            strokeDasharray={line.type === 'dotted' ? '5,5' : 'none'}
-                                            markerEnd="url(#arrow)"
-                                        />
-                                    </g>
-                                ))}
-                                {currentLine && (
-                                    <g>
-                                        <line
-                                            x1={currentLine.start.x}
-                                            y1={currentLine.start.y}
-                                            x2={currentLine.end.x}
-                                            y2={currentLine.end.y}
-                                            stroke="black"
-                                            strokeWidth="2"
-                                            strokeDasharray={currentLine.type === 'dotted' ? '5,5' : 'none'}
-                                            markerEnd="url(#arrow)"
-                                        />
-                                    </g>
+                                <button 
+                                    onClick={savePlay}
+                                    className={`px-4 py-3 rounded-lg text-base ${isPremium ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} transition`}
+                                >
+                                    Save Play {isPremium ? '' : '(Premium)'}
+                                </button>
+                                <button 
+                                    onClick={resetPositions}
+                                    className="bg-gray-600 text-white px-4 py-3 rounded-lg text-base hover:bg-gray-700 transition"
+                                >
+                                    Reset Play
+                                </button>
+                                <button
+                                    onClick={toggleSolidMode}
+                                    className={`px-4 py-3 rounded-lg text-base ${isPremium ? (isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800') : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} hover:bg-green-700 hover:text-white transition`}
+                                >
+                                    Solid Line {isSolidMode ? '(On)' : '(Off)'} {isPremium ? '' : '(Premium)'}
+                                </button>
+                                <button
+                                    onClick={toggleDottedMode}
+                                    className={`px-4 py-3 rounded-lg text-base ${isPremium ? (isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800') : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} hover:bg-green-700 hover:text-white transition`}
+                                >
+                                    Dotted Line {isDottedMode ? '(On)' : '(Off)'} {isPremium ? '' : '(Premium)'}
+                                </button>
+                                <div className="split-button">
+                                    <button
+                                        onClick={undoLine}
+                                        className="bg-gray-600 text-white px-4 py-3 text-base hover:bg-gray-700 transition"
+                                    >
+                                        Undo
+                                    </button>
+                                    <button
+                                        onClick={resetLines}
+                                        className="bg-gray-600 text-white px-4 py-3 text-base hover:bg-gray-700 transition"
+                                    >
+                                        Reset Lines
+                                    </button>
+                                </div>
+                                {!isPremium && (
+                                    <button
+                                        onClick={() => setShowPremiumModal(true)}
+                                        className="bg-blue-600 text-white px-4 py-3 rounded-lg text-base hover:bg-blue-700 transition"
+                                    >
+                                        Go Premium
+                                    </button>
                                 )}
-                                {Object.entries(positions).map(([id, { x, y, label }]) => (
-                                    <DraggableMarker 
-                                        key={id} 
-                                        id={id} 
-                                        x={x} 
-                                        y={y} 
-                                        label={label}
-                                        color={id === 'baseball' ? 'white' : id.includes('runner') ? 'black' : 'red'}
-                                        onDrag={handleDrag}
-                                    />
-                                ))}
-                            </svg>
-                        </div>
+                            </div>
 
-                        <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
-                            <h2 className="text-lg font-semibold text-gray-800 text-center border-b border-gray-200 pb-2">Saved Plays</h2>
-                            <div className="flex-1 overflow-y-auto">
-                                <div className="grid grid-cols-1 gap-2">
-                                    {savedPlays.map((play, index) => (
-                                        <div key={index} className="flex items-center gap-2 relative tooltip-container">
-                                            <button 
-                                                onClick={() => loadPlay(play)}
-                                                className="flex-1 bg-blue-100 p-2 rounded-lg hover:bg-blue-200 text-sm truncate transition text-gray-800"
-                                                title={play.name}
+                            <div className="flex-1 flex justify-center w-full">
+                                <svg 
+                                    width="100%" 
+                                    height="100%" 
+                                    viewBox="150 25 400 450" 
+                                    preserveAspectRatio="xMidYMid meet"
+                                    className="border rounded-lg svg-shadow w-full max-w-[600px] h-auto" 
+                                    style={{ backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' }} 
+                                    onMouseDown={handleMouseDown}
+                                    onMouseMove={handleMouseMove}
+                                    onMouseUp={handleMouseUp}
+                                    onTouchStart={handleMouseDown}
+                                    onTouchMove={handleMouseMove}
+                                    onTouchEnd={handleMouseUp}
+                                >
+                                    <defs>
+                                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                                            <path d="M0,0 L0,6 L9,3 Z" fill="black" />
+                                        </marker>
+                                    </defs>
+                                    <path 
+                                        d="M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z" 
+                                        fill="burlywood"
+                                    />
+                                    <path 
+                                        d="M 350 425 L 250 325 L 350 225 L 450 325 Z" 
+                                        fill="rgba(0, 128, 0, 0.8)"
+                                    />
+                                    <circle cx="350" cy="325" r="20" fill="burlywood" />
+                                    <rect x="340" y="320" width="20" height="5" fill="white" />
+                                    <path 
+                                        d="M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z" 
+                                        fill="white"
+                                    />
+                                    <rect x="240" y="315" width="15" height="15" fill="white" transform="rotate(45 250 325)" />
+                                    <rect x="340" y="215" width="15" height="15" fill="white" transform="rotate(45 350 225)" />
+                                    <rect x="440" y="315" width="15" height="15" fill="white" transform="rotate(45 450 325)" />
+                                    <line x1="350" y1="425" x2="250" y2="325" stroke="white" strokeWidth="2" />
+                                    <line x1="250" y1="325" x2="350" y2="225" stroke="white" strokeWidth="2" />
+                                    <line x1="350" y1="225" x2="450" y2="325" stroke="white" strokeWidth="2" />
+                                    <line x1="450" y1="325" x2="350" y2="425" stroke="white" strokeWidth="2" />
+                                    {lines.map((line, index) => (
+                                        <g key={index}>
+                                            <line
+                                                x1={line.start.x}
+                                                y1={line.start.y}
+                                                x2={line.end.x}
+                                                y2={line.end.y}
+                                                stroke="black"
+                                                strokeWidth="2"
+                                                strokeDasharray={line.type === 'dotted' ? '5,5' : 'none'}
+                                                markerEnd="url(#arrow)"
+                                            />
+                                        </g>
+                                    ))}
+                                    {currentLine && (
+                                        <g>
+                                            <line
+                                                x1={currentLine.start.x}
+                                                y1={currentLine.start.y}
+                                                x2={currentLine.end.x}
+                                                y2={currentLine.end.y}
+                                                stroke="black"
+                                                strokeWidth="2"
+                                                strokeDasharray={currentLine.type === 'dotted' ? '5,5' : 'none'}
+                                                markerEnd="url(#arrow)"
+                                            />
+                                        </g>
+                                    )}
+                                    {Object.entries(positions).map(([id, { x, y, label }]) => (
+                                        <DraggableMarker 
+                                            key={id} 
+                                            id={id} 
+                                            x={x} 
+                                            y={y} 
+                                            label={label}
+                                            color={id === 'baseball' ? 'white' : id.includes('runner') ? 'black' : 'red'}
+                                            onDrag={handleDrag}
+                                        />
+                                    ))}
+                                </svg>
+                            </div>
+
+                            <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
+                                <h2 className="text-lg font-semibold text-gray-800 text-center border-b border-gray-200 pb-2">Saved Plays</h2>
+                                <div className="flex-1 overflow-y-auto">
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {savedPlays.map((play, index) => (
+                                            <div key={index} className="flex items-center gap-2 relative tooltip-container">
+                                                <button 
+                                                    onClick={() => loadPlay(play)}
+                                                    className="flex-1 bg-blue-100 p-2 rounded-lg hover:bg-blue-200 text-sm truncate transition text-gray-800"
+                                                    title={play.name}
+                                                >
+                                                    {play.name}
+                                                </button>
+                                                <button 
+                                                    onClick={() => openNotesModal(index)}
+                                                    className="bg-yellow-500 text-white px-2 py-1 rounded-lg text-sm hover:bg-yellow-600 transition"
+                                                >
+                                                    📝
+                                                </button>
+                                                {play.notes && (
+                                                    <span className="tooltip">{play.notes}</span>
+                                                )}
+                                                <button 
+                                                    onClick={() => deletePlay(index)}
+                                                    className="bg-red-600 text-white px-2 py-1 rounded-lg text-sm hover:bg-red-700 transition"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {showPremiumModal && (
+                                <div className="modal">
+                                    <div className="modal-content p-6">
+                                        <h2 className="text-xl font-bold mb-4">Upgrade to Premium</h2>
+                                        <p className="text-gray-600 mb-4">Unlock saving plays, drawing lines, and adding notes!</p>
+                                        <button
+                                            onClick={() => handleGoPremium('monthly')}
+                                            className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                                        >
+                                            $4.99/month
+                                        </button>
+                                        <button
+                                            onClick={() => handleGoPremium('annual')}
+                                            className="block mx-auto mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                                        >
+                                            $39.99/year (Save 33%)
+                                        </button>
+                                        <div className="flex justify-center mt-4">
+                                            <button
+                                                onClick={() => setShowPremiumModal(false)}
+                                                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
                                             >
-                                                {play.name}
-                                            </button>
-                                            <button 
-                                                onClick={() => openNotesModal(index)}
-                                                className="bg-yellow-500 text-white px-2 py-1 rounded-lg text-sm hover:bg-yellow-600 transition"
-                                            >
-                                                📝
-                                            </button>
-                                            {play.notes && (
-                                                <span className="tooltip">{play.notes}</span>
-                                            )}
-                                            <button 
-                                                onClick={() => deletePlay(index)}
-                                                className="bg-red-600 text-white px-2 py-1 rounded-lg text-sm hover:bg-red-700 transition"
-                                            >
-                                                Delete
+                                                Cancel
                                             </button>
                                         </div>
-                                    ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {showNotesModal && (
+                                <div className="modal">
+                                    <div className="modal-content p-6">
+                                        <h2 className="text-xl font-bold mb-4">Play Notes</h2>
+                                        <textarea
+                                            value={currentNotes}
+                                            onChange={(e) => setCurrentNotes(e.target.value)}
+                                            placeholder="Add notes (e.g., 2 outs, runner on 3rd)"
+                                            className="border border-gray-300 p-3 rounded-lg text-base w-full h-32 resize-none focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
+                                        />
+                                        <div className="flex justify-center gap-4">
+                                            <button
+                                                onClick={saveNotes}
+                                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                                            >
+                                                Save Notes
+                                            </button>
+                                            <button
+                                                onClick={() => setShowNotesModal(false)}
+                                                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-
-                        {showPremiumModal && (
-                            <div className="modal">
-                                <div className="modal-content p-6">
-                                    <h2 className="text-xl font-bold mb-4">Upgrade to Premium</h2>
-                                    <p className="text-gray-600 mb-4">Unlock saving plays, drawing lines, and adding notes!</p>
-                                    <button
-                                        onClick={() => handleGoPremium('monthly')}
-                                        className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                                    >
-                                        $4.99/month
-                                    </button>
-                                    <button
-                                        onClick={() => handleGoPremium('annual')}
-                                        className="block mx-auto mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                                    >
-                                        $39.99/year (Save 33%)
-                                    </button>
-                                    <div className="flex justify-center mt-4">
-                                        <button
-                                            onClick={() => setShowPremiumModal(false)}
-                                            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {showNotesModal && (
-                            <div className="modal">
-                                <div className="modal-content p-6">
-                                    <h2 className="text-xl font-bold mb-4">Play Notes</h2>
-                                    <textarea
-                                        value={currentNotes}
-                                        onChange={(e) => setCurrentNotes(e.target.value)}
-                                        placeholder="Add notes (e.g., 2 outs, runner on 3rd)"
-                                        className="border border-gray-300 p-3 rounded-lg text-base w-full h-32 resize-none focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
-                                    />
-                                    <div className="flex justify-center gap-4">
-                                        <button
-                                            onClick={saveNotes}
-                                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-                                        >
-                                            Save Notes
-                                        </button>
-                                        <button
-                                            onClick={() => setShowNotesModal(false)}
-                                            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    )}
                 </div>
             );
         }
