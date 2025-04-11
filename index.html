@@ -12,7 +12,7 @@
     <title>FieldCommand: Baseball Defense Planner</title>
     <link rel="preconnect" href="https://js.stripe.com">
     <link rel="preconnect" href="https://www.googletagmanager.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-KCRLDQSSEY"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -21,10 +21,8 @@
       gtag('config', 'G-KCRLDQSSEY');
     </script>
     <script src="https://js.stripe.com/v3/"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/preact@latest/dist/preact.umd.js"></script>
+    <script defer src="https://unpkg.com/preact@latest/hooks/dist/hooks.umd.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -41,6 +39,7 @@
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
         }
         .title-highlight {
             background: linear-gradient(90deg, #2c3e50 0%, #3498db 100%);
@@ -53,6 +52,7 @@
         .sidebar {
             background: #f8fafc;
             border-radius: 8px;
+            padding: 1rem;
         }
         .error-message, .success-message {
             font-size: 0.875rem;
@@ -60,9 +60,7 @@
             margin-bottom: 1rem;
             display: none;
         }
-        .error-message {
-            color: #e53e3e;
-        }
+        .error-message { color: #e53e3e; }
         .success-message {
             color: #2f855a;
             background: #f0fff4;
@@ -74,26 +72,6 @@
             transform: translateX(-50%);
             width: 100%;
             text-align: center;
-        }
-        input, button, textarea {
-            font-size: 16px;
-        }
-        .split-button {
-            display: flex;
-            width: 100%;
-        }
-        .split-button button {
-            flex: 1;
-            border-radius: 0;
-        }
-        .split-button button:first-child {
-            border-top-left-radius: 8px;
-            border-bottom-left-radius: 8px;
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
-        }
-        .split-button button:last-child {
-            border-top-right-radius: 8px;
-            border-bottom-right-radius: 8px;
         }
         .modal {
             background: rgba(0, 0, 0, 0.5);
@@ -111,6 +89,7 @@
             border-radius: 8px;
             max-width: 400px;
             text-align: center;
+            padding: 1.5rem;
         }
         .tooltip {
             visibility: hidden;
@@ -128,777 +107,656 @@
             font-size: 14px;
             white-space: pre-wrap;
         }
-        .tooltip-container:hover .tooltip {
-            visibility: visible;
-        }
+        .tooltip-container:hover .tooltip { visibility: visible; }
+        svg { background-color: rgba(0, 128, 0, 0.8); touch-action: none; }
+        .button-green { background-color: #16a34a; color: white; }
+        .button-gray { background-color: #4b5563; color: white; }
+        .button-blue { background-color: #2563eb; color: white; }
+        .button-red { background-color: #dc2626; color: white; }
+        .button-yellow { background-color: #d97706; color: white; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center">
-    <div id="loading" class="fixed inset-0 flex items-center justify-center bg-white">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-green-600"></div>
+<body>
+    <div id="loading" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: white;">
+        <div style="width: 3rem; height: 3rem; border: 4px solid #16a34a; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
     </div>
-    <div class="w-full max-w-[1200px] mx-auto p-4 md:p-6">
+    <div style="width: 100%; max-width: 1200px; margin: 0 auto; padding: 1rem;">
         <div id="root" role="application" aria-label="FieldCommand Baseball Defense Planner"></div>
     </div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <script type="text/javascript">
+        // Wait for Preact to load
+        function initApp() {
+            if (typeof Preact === 'undefined' || typeof PreactHooks === 'undefined') {
+                setTimeout(initApp, 100); // Retry every 100ms
+                return;
+            }
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCrSN8xc3KTGrc2gUzcqerL6SSYrF3LXZM",
-            authDomain: "fieldcommand.firebaseapp.com",
-            projectId: "fieldcommand",
-            storageBucket: "fieldcommand.firebasestorage.app",
-            messagingSenderId: "944064034218",
-            appId: "1:944064034218:web:bb6744acdd0d66e9ba27d3",
-            measurementId: "G-C3TQ7DWTX8"
-        };
+            const { h, render } = Preact;
+            const { useState, useEffect } = PreactHooks;
 
-        let app, db, auth;
-        try {
-            app = firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            auth = firebase.auth();
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-        }
-
-        let stripe;
-        const stripePromise = new Promise((resolve) => {
-            const checkStripe = () => {
-                if (window.Stripe) {
-                    stripe = window.Stripe('pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5');
-                    resolve(stripe);
-                } else {
-                    setTimeout(checkStripe, 100);
-                }
+            const firebaseConfig = {
+                apiKey: "AIzaSyCrSN8xc3KTGrc2gUzcqerL6SSYrF3LXZM",
+                authDomain: "fieldcommand.firebaseapp.com",
+                projectId: "fieldcommand",
+                storageBucket: "fieldcommand.firebasestorage.app",
+                messagingSenderId: "944064034218",
+                appId: "1:944064034218:web:bb6744acdd0d66e9ba27d3",
+                measurementId: "G-C3TQ7DWTX8"
             };
-            checkStripe();
-        });
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            let app, db, auth;
+            try {
+                app = firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                auth = firebase.auth();
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+            }
 
-        const initialPositions = {
-            pitcher: { x: 350, y: 308, label: 'P' },
-            catcher: { x: 350, y: 455, label: 'C' },
-            first: { x: 450, y: 275, label: '1B' },
-            second: { x: 400, y: 205, label: '2B' },
-            third: { x: 250, y: 275, label: '3B' },
-            shortstop: { x: 300, y: 205, label: 'SS' },
-            left: { x: 225, y: 125, label: 'LF' },
-            center: { x: 350, y: 75, label: 'CF' },
-            right: { x: 475, y: 125, label: 'RF' },
-            baseball: { x: 450, y: 410, label: '⚾' },
-            runner1: { x: 485, y: 410, label: 'BR' },
-            runner2: { x: 520, y: 410, label: 'BR' },
-            runner3: { x: 485, y: 445, label: 'BR' },
-            runner4: { x: 520, y: 445, label: 'BR' }
-        };
-
-        function DraggableMarker({ id, x, y, label, color, onDrag }) {
-            const [isDragging, setIsDragging] = useState(false);
-
-            const getClientPosition = (e) => {
-                const isTouch = e.type.startsWith('touch');
-                return {
-                    x: isTouch ? e.touches[0].clientX : e.clientX,
-                    y: isTouch ? e.touches[0].clientY : e.clientY
+            let stripe;
+            const stripePromise = new Promise((resolve) => {
+                const checkStripe = () => {
+                    if (window.Stripe) {
+                        stripe = window.Stripe('pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5');
+                        resolve(stripe);
+                    } else {
+                        setTimeout(checkStripe, 100);
+                    }
                 };
+                checkStripe();
+            });
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            const initialPositions = {
+                pitcher: { x: 350, y: 308, label: 'P' },
+                catcher: { x: 350, y: 455, label: 'C' },
+                first: { x: 450, y: 275, label: '1B' },
+                second: { x: 400, y: 205, label: '2B' },
+                third: { x:  NED250, y: 275, label: '3B' },
+                shortstop: { x: 300, y: 205, label: 'SS' },
+                left: { x: 225, y: 125, label: 'LF' },
+                center: { x: 350, y: 75, label: 'CF' },
+                right: { x: 475, y: 125, label: 'RF' },
+                baseball: { x: 450, y: 410, label: '⚾' },
+                runner1: { x: 485, y: 410, label: 'BR' },
+                runner2: { x: 520, y: 410, label: 'BR' },
+                runner3: { x: 485, y: 445, label: 'BR' },
+                runner4: { x: 520, y: 445, label: 'BR' }
             };
 
-            const handleStart = (e) => {
-                setIsDragging(true);
-                e.preventDefault();
-                e.stopPropagation();
-            };
+            function DraggableMarker({ id, x, y, label, color, onDrag }) {
+                const [isDragging, setIsDragging] = useState(false);
 
-            const handleMove = React.useCallback((e) => {
-                if (isDragging) {
-                    const { x, y } = getClientPosition(e);
-                    const svg = document.querySelector('svg');
-                    const pt = svg.createSVGPoint();
-                    pt.x = x;
-                    pt.y = y;
-                    const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
-                    onDrag(id, transformed.x, transformed.y);
+                const getClientPosition = (e) => {
+                    const isTouch = e.type.startsWith('touch');
+                    return {
+                        x: isTouch ? e.touches[0].clientX : e.clientX,
+                        y: isTouch ? e.touches[0].clientY : e.clientY
+                    };
+                };
+
+                const handleStart = (e) => {
+                    setIsDragging(true);
                     e.preventDefault();
-                }
-            }, [isDragging, id, onDrag]);
-
-            const handleEnd = React.useCallback((e) => {
-                setIsDragging(false);
-                e.preventDefault();
-            }, []);
-
-            useEffect(() => {
-                if (isDragging) {
-                    document.addEventListener('mousemove', handleMove);
-                    document.addEventListener('mouseup', handleEnd);
-                    document.addEventListener('touchmove', handleMove, { passive: false });
-                    document.addEventListener('touchend', handleEnd);
-                }
-                return () => {
-                    document.removeEventListener('mousemove', handleMove);
-                    document.removeEventListener('mouseup', handleEnd);
-                    document.removeEventListener('touchmove', handleMove);
-                    document.removeEventListener('touchend', handleEnd);
+                    e.stopPropagation();
                 };
-            }, [isDragging, handleMove, handleEnd]);
 
-            return (
-                <g 
-                    onMouseDown={handleStart} 
-                    onTouchStart={handleStart} 
-                    className="cursor-move touch-none"
-                    tabIndex="0"
-                    role="button"
-                    aria-label={`${label} marker at position ${x},${y}`}
-                >
-                    <circle 
-                        cx={x} 
-                        cy={y} 
-                        r={id === 'baseball' ? 10 : 15} 
-                        fill={color} 
-                        stroke="white" 
-                        strokeWidth="2"
-                    />
-                    {label && (
-                        <text 
-                            x={x} 
-                            y={y + (id === 'baseball' ? 4 : 5)} 
-                            textAnchor="middle" 
-                            fill="white" 
-                            fontSize={id === 'baseball' ? 14 : 12}
-                        >
-                            {label}
-                        </text>
-                    )}
-                </g>
-            );
-        }
+                const handleMove = (e) => {
+                    if (isDragging) {
+                        const { x, y } = getClientPosition(e);
+                        const svg = document.querySelector('svg');
+                        const pt = svg.createSVGPoint();
+                        pt.x = x;
+                        pt.y = y;
+                        const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
+                        onDrag(id, transformed.x, transformed.y);
+                        e.preventDefault();
+                    }
+                };
 
-        function BaseballField() {
-            const [positions, setPositions] = useState(initialPositions);
-            const [playName, setPlayName] = useState('');
-            const [savedPlays, setSavedPlays] = useState([]);
-            const [isSolidMode, setIsSolidMode] = useState(false);
-            const [isDottedMode, setIsDottedMode] = useState(false);
-            const [drawing, setDrawing] = useState(false);
-            const [currentLine, setCurrentLine] = useState(null);
-            const [lines, setLines] = useState([]);
-            const [showPremiumModal, setShowPremiumModal] = useState(false);
-            const [showNotesModal, setShowNotesModal] = useState(false);
-            const [currentPlayIndex, setCurrentPlayIndex] = useState(null);
-            const [currentNotes, setCurrentNotes] = useState('');
-            const [isPremium, setIsPremium] = useState(localStorage.getItem('isPremium') === 'true');
-            const [showEmailGate, setShowEmailGate] = useState(
-                localStorage.getItem('fieldCommandUnlocked') !== 'true' && !isPremium
-            );
-            const [error, setError] = useState(null);
-            const [showSuccess, setShowSuccess] = useState(false);
+                const handleEnd = (e) => {
+                    setIsDragging(false);
+                    e.preventDefault();
+                };
 
-            useEffect(() => {
-                if (!app || !db || !auth) {
-                    setError("Firebase not initialized. Check console for details.");
-                    return;
-                }
+                useEffect(() => {
+                    if (isDragging) {
+                        document.addEventListener('mousemove', handleMove);
+                        document.addEventListener('mouseup', handleEnd);
+                        document.addEventListener('touchmove', handleMove, { passive: false });
+                        document.addEventListener('touchend', handleEnd);
+                    }
+                    return () => {
+                        document.removeEventListener('mousemove', handleMove);
+                        document.removeEventListener('mouseup', handleEnd);
+                        document.removeEventListener('touchmove', handleMove);
+                        document.removeEventListener('touchend', handleEnd);
+                    };
+                }, [isDragging]);
 
-                auth.signInAnonymously()
-                    .then((userCredential) => {
+                return h('g', {
+                    onMouseDown: handleStart,
+                    onTouchStart: handleStart,
+                    className: 'cursor-move touch-none',
+                    tabIndex: 0,
+                    role: 'button',
+                    'aria-label': `${label} marker at position ${x},${y}`
+                }, [
+                    h('circle', { cx: x, cy: y, r: id === 'baseball' ? 10 : 15, fill: color, stroke: 'white', strokeWidth: 2 }),
+                    label && h('text', { x: x, y: y + (id === 'baseball' ? 4 : 5), textAnchor: 'middle', fill: 'white', fontSize: id === 'baseball' ? 14 : 12 }, label)
+                ]);
+            }
+
+            function BaseballField() {
+                const [positions, setPositions] = useState(initialPositions);
+                const [playName, setPlayName] = useState('');
+                const [savedPlays, setSavedPlays] = useState([]);
+                const [isSolidMode, setIsSolidMode] = useState(false);
+                const [isDottedMode, setIsDottedMode] = useState(false);
+                const [drawing, setDrawing] = useState(false);
+                const [currentLine, setCurrentLine] = useState(null);
+                const [lines, setLines] = useState([]);
+                const [showPremiumModal, setShowPremiumModal] = useState(false);
+                const [showNotesModal, setShowNotesModal] = useState(false);
+                const [currentPlayIndex, setCurrentPlayIndex] = useState(null);
+                const [currentNotes, setCurrentNotes] = useState('');
+                const [isPremium, setIsPremium] = useState(localStorage.getItem('isPremium') === 'true');
+                const [showEmailGate, setShowEmailGate] = useState(localStorage.getItem('fieldCommandUnlocked') !== 'true' && !isPremium);
+                const [error, setError] = useState(null);
+                const [showSuccess, setShowSuccess] = useState(false);
+
+                useEffect(() => {
+                    if (!app || !db || !auth) {
+                        setError("Firebase not initialized. Check console for details.");
+                        return;
+                    }
+                    auth.signInAnonymously().then((userCredential) => {
                         const userId = userCredential.user.uid;
-                        db.collection('users').doc(userId).collection('plays')
-                            .onSnapshot((querySnapshot) => {
-                                const plays = [];
-                                querySnapshot.forEach((doc) => {
-                                    plays.push(doc.data());
-                                });
-                                setSavedPlays(plays);
-                                document.getElementById('loading').style.display = 'none';
-                            }, (error) => {
-                                console.error('Error loading plays:', error);
-                                setError("Failed to load plays: " + error.message);
-                            });
-                    })
-                    .catch((error) => {
+                        db.collection('users').doc(userId).collection('plays').onSnapshot((querySnapshot) => {
+                            const plays = [];
+                            querySnapshot.forEach((doc) => plays.push(doc.data()));
+                            setSavedPlays(plays);
+                            document.getElementById('loading').style.display = 'none';
+                        }, (error) => {
+                            console.error('Error loading plays:', error);
+                            setError("Failed to load plays: " + error.message);
+                        });
+                    }).catch((error) => {
                         console.error('Error signing in anonymously:', error);
                         setError("Authentication failed: " + error.message);
                     });
-            }, []);
+                }, []);
 
-            const getClientPosition = (e) => {
-                const isTouch = e.type.startsWith('touch');
-                return {
-                    x: isTouch ? e.touches[0].clientX : e.clientX,
-                    y: isTouch ? e.touches[0].clientY : e.clientY
-                };
-            };
-
-            const triggerPremiumModal = () => {
-                gtag('event', 'premium_modal_view', {
-                    'event_category': 'Premium',
-                    'event_label': 'Premium Modal Displayed'
-                });
-                setShowPremiumModal(true);
-            };
-
-            const handleEmailSubmit = async (e) => {
-                e.preventDefault();
-                const email = e.target.querySelector('#unlock-email').value;
-                const errorMessage = e.target.querySelector('#email-error');
-                const successMessage = e.target.querySelector('#email-success');
-
-                if (!emailRegex.test(email)) {
-                    errorMessage.style.display = 'block';
-                    return;
-                }
-
-                errorMessage.style.display = 'none';
-
-                gtag('event', 'unlock_app_attempt', {
-                    'event_category': 'Engagement',
-                    'event_label': 'Email Submission Attempt'
-                });
-
-                const formData = new FormData();
-                formData.append('EMAIL', email);
-                formData.append('b_c3a7558bf8ddc22b2955671f5_1130a67a8c', '');
-
-                try {
-                    await fetch('https://us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
-                        method: 'POST',
-                        body: formData,
-                        mode: 'no-cors'
-                    });
-                    setShowSuccess(true);
-                    setTimeout(() => {
-                        setShowSuccess(false);
-                        setShowEmailGate(false);
-                    }, 2000);
-                    gtag('event', 'unlock_app_success', {
-                        'event_category': 'Engagement',
-                        'event_label': 'Email Submission Success',
-                        'value': 1
-                    });
-                } catch (error) {
-                    console.error('Error submitting to Mailchimp:', error);
-                    errorMessage.textContent = "Something went wrong. Please try again.";
-                    errorMessage.style.display = 'block';
-                    gtag('event', 'unlock_app_error', {
-                        'event_category': 'Engagement',
-                        'event_label': 'Email Submission Error'
-                    });
-                }
-
-                localStorage.setItem('fieldCommandUnlocked', 'true');
-            };
-
-            const handleDrag = (id, newX, newY) => {
-                setPositions(prev => ({
-                    ...prev,
-                    [id]: { ...prev[id], x: newX, y: newY }
-                }));
-            };
-
-            const savePlay = () => {
-                if (!isPremium) {
-                    triggerPremiumModal();
-                    return;
-                }
-                if (playName) {
-                    const newPlay = { 
-                        name: playName, 
-                        positions: { ...positions }, 
-                        lines: [...lines], 
-                        notes: '' 
+                const getClientPosition = (e) => {
+                    const isTouch = e.type.startsWith('touch');
+                    return {
+                        x: isTouch ? e.touches[0].clientX : e.clientX,
+                        y: isTouch ? e.touches[0].clientY : e.clientY
                     };
-                    const newSavedPlays = [...savedPlays, newPlay];
+                };
+
+                const triggerPremiumModal = () => {
+                    gtag('event', 'premium_modal_view', { event_category: 'Premium', event_label: 'Premium Modal Displayed' });
+                    setShowPremiumModal(true);
+                };
+
+                const handleEmailSubmit = async (e) => {
+                    e.preventDefault();
+                    const email = e.target.querySelector('#unlock-email').value;
+                    const errorMessage = e.target.querySelector('#email-error');
+                    const successMessage = e.target.querySelector('#email-success');
+
+                    if (!emailRegex.test(email)) {
+                        errorMessage.style.display = 'block';
+                        return;
+                    }
+                    errorMessage.style.display = 'none';
+                    gtag('event', 'unlock_app_attempt', { event_category: 'Engagement', event_label: 'Email Submission Attempt' });
+                    const formData = new FormData();
+                    formData.append('EMAIL', email);
+                    formData.append('b_c3a7558bf8ddc22b2955671f5_1130a67a8c', '');
+                    try {
+                        await fetch('https://us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
+                            method: 'POST',
+                            body: formData,
+                            mode: 'no-cors'
+                        });
+                        setShowSuccess(true);
+                        setTimeout(() => {
+                            setShowSuccess(false);
+                            setShowEmailGate(false);
+                        }, 2000);
+                        gtag('event', 'unlock_app_success', { event_category: 'Engagement', event_label: 'Email Submission Success', value: 1 });
+                    } catch (error) {
+                        console.error('Error submitting to Mailchimp:', error);
+                        errorMessage.textContent = "Something went wrong. Please try again.";
+                        errorMessage.style.display = 'block';
+                        gtag('event', 'unlock_app_error', { event_category: 'Engagement', event_label: 'Email Submission Error' });
+                    }
+                    localStorage.setItem('fieldCommandUnlocked', 'true');
+                };
+
+                const handleDrag = (id, newX, newY) => {
+                    setPositions(prev => ({ ...prev, [id]: { ...prev[id], x: newX, y: newY } }));
+                };
+
+                const savePlay = () => {
+                    if (!isPremium) return triggerPremiumModal();
+                    if (playName) {
+                        const newPlay = { name: playName, positions: { ...positions }, lines: [...lines], notes: '' };
+                        const newSavedPlays = [...savedPlays, newPlay];
+                        setSavedPlays(newSavedPlays);
+                        if (auth.currentUser) {
+                            db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playName).set(newPlay)
+                                .catch((error) => console.error('Error saving play:', error));
+                        }
+                        setPlayName('');
+                    }
+                };
+
+                const loadPlay = (play) => {
+                    setPositions(play.positions);
+                    setLines(play.lines || []);
+                    setPlayName(play.name);
+                };
+
+                const deletePlay = (index) => {
+                    const playToDelete = savedPlays[index];
+                    const newSavedPlays = savedPlays.filter((_, i) => i !== index);
                     setSavedPlays(newSavedPlays);
                     if (auth.currentUser) {
-                        db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playName).set(newPlay)
-                            .catch((error) => console.error('Error saving play:', error));
+                        db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playToDelete.name).delete()
+                            .catch((error) => console.error('Error deleting play:', error));
                     }
+                    resetPositions();
+                };
+
+                const resetPositions = () => {
+                    setPositions(initialPositions);
+                    setLines([]);
+                    setDrawing(false);
+                    setCurrentLine(null);
+                    setIsSolidMode(false);
+                    setIsDottedMode(false);
                     setPlayName('');
-                }
-            };
+                };
 
-            const loadPlay = (play) => {
-                setPositions(play.positions);
-                setLines(play.lines || []);
-                setPlayName(play.name);
-            };
+                const toggleSolidMode = () => {
+                    if (!isPremium) return triggerPremiumModal();
+                    setIsSolidMode(prev => {
+                        const newState = !prev;
+                        if (newState) setIsDottedMode(false);
+                        return newState;
+                    });
+                };
 
-            const deletePlay = (index) => {
-                const playToDelete = savedPlays[index];
-                const newSavedPlays = savedPlays.filter((_, i) => i !== index);
-                setSavedPlays(newSavedPlays);
-                if (auth.currentUser) {
-                    db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playToDelete.name).delete()
-                        .catch((error) => console.error('Error deleting play:', error));
-                }
-                resetPositions();
-            };
+                const toggleDottedMode = () => {
+                    if (!isPremium) return triggerPremiumModal();
+                    setIsDottedMode(prev => {
+                        const newState = !prev;
+                        if (newState) setIsSolidMode(false);
+                        return newState;
+                    });
+                };
 
-            const resetPositions = () => {
-                setPositions(initialPositions);
-                setLines([]);
-                setDrawing(false);
-                setCurrentLine(null);
-                setIsSolidMode(false);
-                setIsDottedMode(false);
-                setPlayName('');
-            };
-
-            const toggleSolidMode = () => {
-                if (!isPremium) {
-                    triggerPremiumModal();
-                    return;
-                }
-                setIsSolidMode(prev => {
-                    const newState = !prev;
-                    if (newState) setIsDottedMode(false);
-                    return newState;
-                });
-            };
-
-            const toggleDottedMode = () => {
-                if (!isPremium) {
-                    triggerPremiumModal();
-                    return;
-                }
-                setIsDottedMode(prev => {
-                    const newState = !prev;
-                    if (newState) setIsSolidMode(false);
-                    return newState;
-                });
-            };
-
-            const handleMouseDown = (e) => {
-                if (!isPremium || (!isSolidMode && !isDottedMode)) return;
-
-                const svg = e.currentTarget;
-                const { x, y } = getClientPosition(e);
-                const pt = svg.createSVGPoint();
-                pt.x = x;
-                pt.y = y;
-                const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
-                
-                setDrawing(true);
-                setCurrentLine({
-                    start: { x: transformed.x, y: transformed.y },
-                    end: { x: transformed.x, y: transformed.y },
-                    type: isSolidMode ? 'solid' : 'dotted'
-                });
-                e.preventDefault();
-            };
-
-            const handleMouseMove = (e) => {
-                if (drawing) {
-                    const svg = document.querySelector('svg');
+                const handleMouseDown = (e) => {
+                    if (!isPremium || (!isSolidMode && !isDottedMode)) return;
+                    const svg = e.currentTarget;
                     const { x, y } = getClientPosition(e);
                     const pt = svg.createSVGPoint();
                     pt.x = x;
                     pt.y = y;
                     const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
-                    
-                    setCurrentLine(prev => ({
-                        ...prev,
-                        end: { x: transformed.x, y: transformed.y }
-                    }));
+                    setDrawing(true);
+                    setCurrentLine({ start: { x: transformed.x, y: transformed.y }, end: { x: transformed.x, y: transformed.y }, type: isSolidMode ? 'solid' : 'dotted' });
                     e.preventDefault();
-                }
-            };
+                };
 
-            const handleMouseUp = () => {
-                if (drawing && currentLine) {
-                    setLines(prev => [...prev, currentLine]);
+                const handleMouseMove = (e) => {
+                    if (drawing) {
+                        const svg = document.querySelector('svg');
+                        const { x, y } = getClientPosition(e);
+                        const pt = svg.createSVGPoint();
+                        pt.x = x;
+                        pt.y = y;
+                        const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
+                        setCurrentLine(prev => ({ ...prev, end: { x: transformed.x, y: transformed.y } }));
+                        e.preventDefault();
+                    }
+                };
+
+                const handleMouseUp = () => {
+                    if (drawing && currentLine) {
+                        setLines(prev => [...prev, currentLine]);
+                        setDrawing(false);
+                        setCurrentLine(null);
+                    }
+                };
+
+                const undoLine = () => {
+                    setLines(prev => prev.slice(0, -1));
                     setDrawing(false);
                     setCurrentLine(null);
-                }
-            };
+                };
 
-            const undoLine = () => {
-                setLines(prev => prev.slice(0, -1));
-                setDrawing(false);
-                setCurrentLine(null);
-            };
+                const resetLines = () => {
+                    setLines([]);
+                    setDrawing(false);
+                    setCurrentLine(null);
+                };
 
-            const resetLines = () => {
-                setLines([]);
-                setDrawing(false);
-                setCurrentLine(null);
-            };
-
-            const handleGoPremium = async (plan) => {
-                gtag('event', 'premium_interest', {
-                    'event_category': 'Premium',
-                    'event_label': `Go Premium Clicked - ${plan}`,
-                    'value': plan === 'monthly' ? 4.99 : plan === 'annual' ? 39.99 : 74.99
-                });
-
-                try {
-                    const stripeInstance = await stripePromise;
-                    let priceId, mode;
-                    if (plan === 'monthly') {
-                        priceId = 'price_1RBeSTB311TbF661Wzqqc3OW';
-                        mode = 'subscription';
-                    } else if (plan === 'annual') {
-                        priceId = 'price_1RBeT4B311TbF661BchpXFF1';
-                        mode = 'subscription';
-                    } else if (plan === 'onetime') {
-                        priceId = 'price_1RBoExB311TbF661pkuJDeP5';
-                        mode = 'payment';
+                const handleGoPremium = async (plan) => {
+                    gtag('event', 'premium_interest', { event_category: 'Premium', event_label: `Go Premium Clicked - ${plan}`, value: plan === 'monthly' ? 4.99 : plan === 'annual' ? 39.99 : 74.99 });
+                    try {
+                        const stripeInstance = await stripePromise;
+                        let priceId, mode;
+                        if (plan === 'monthly') { priceId = 'price_1RBeSTB311TbF661Wzqqc3OW'; mode = 'subscription'; }
+                        else if (plan === 'annual') { priceId = 'price_1RBeT4B311TbF661BchpXFF1'; mode = 'subscription'; }
+                        else if (plan === 'onetime') { priceId = 'price_1RBoExB311TbF661pkuJDeP5'; mode = 'payment'; }
+                        localStorage.setItem('lastPremiumPlan', plan);
+                        const result = await stripeInstance.redirectToCheckout({
+                            lineItems: [{ price: priceId, quantity: 1 }],
+                            mode: mode,
+                            successUrl: window.location.href + '?premium_success=true',
+                            cancelUrl: window.location.href
+                        });
+                        if (result.error) console.error('Stripe checkout error:', result.error.message);
+                    } catch (error) {
+                        console.error('Error in handleGoPremium:', error);
                     }
-                    localStorage.setItem('lastPremiumPlan', plan);
-                    const result = await stripeInstance.redirectToCheckout({
-                        lineItems: [{ price: priceId, quantity: 1 }],
-                        mode: mode,
-                        successUrl: window.location.href + '?premium_success=true',
-                        cancelUrl: window.location.href
-                    });
-                    if (result.error) {
-                        console.error('Stripe checkout error:', result.error.message);
+                };
+
+                const openNotesModal = (index) => {
+                    if (!isPremium) return triggerPremiumModal();
+                    setCurrentPlayIndex(index);
+                    setCurrentNotes(savedPlays[index].notes || '');
+                    setShowNotesModal(true);
+                };
+
+                const saveNotes = () => {
+                    if (currentPlayIndex !== null) {
+                        const updatedPlays = [...savedPlays];
+                        updatedPlays[currentPlayIndex] = { ...updatedPlays[currentPlayIndex], notes: currentNotes };
+                        setSavedPlays(updatedPlays);
+                        if (auth.currentUser) {
+                            db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(updatedPlays[currentPlayIndex].name).set(updatedPlays[currentPlayIndex])
+                                .catch((error) => console.error('Error saving notes:', error));
+                        }
                     }
-                } catch (error) {
-                    console.error('Error in handleGoPremium:', error);
-                }
-            };
+                    setShowNotesModal(false);
+                    setCurrentPlayIndex(null);
+                    setCurrentNotes('');
+                };
 
-            const openNotesModal = (index) => {
-                if (!isPremium) {
-                    triggerPremiumModal();
-                    return;
-                }
-                setCurrentPlayIndex(index);
-                setCurrentNotes(savedPlays[index].notes || '');
-                setShowNotesModal(true);
-            };
-
-            const saveNotes = () => {
-                if (currentPlayIndex !== null) {
-                    const updatedPlays = [...savedPlays];
-                    updatedPlays[currentPlayIndex] = { ...updatedPlays[currentPlayIndex], notes: currentNotes };
-                    setSavedPlays(updatedPlays);
-                    if (auth.currentUser) {
-                        db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(updatedPlays[currentPlayIndex].name).set(updatedPlays[currentPlayIndex])
-                            .catch((error) => console.error('Error saving notes:', error));
+                useEffect(() => {
+                    if (window.location.search.includes('premium_success=true')) {
+                        gtag('event', 'purchase', {
+                            event_category: 'Ecommerce',
+                            event_label: 'Premium Purchase',
+                            value: localStorage.getItem('lastPremiumPlan') === 'monthly' ? 4.99 : localStorage.getItem('lastPremiumPlan') === 'annual' ? 39.99 : 74.99,
+                            currency: 'USD'
+                        });
+                        localStorage.setItem('isPremium', 'true');
+                        setIsPremium(true);
+                        setShowEmailGate(false);
+                        window.history.replaceState({}, document.title, window.location.pathname);
                     }
-                }
-                setShowNotesModal(false);
-                setCurrentPlayIndex(null);
-                setCurrentNotes('');
-            };
+                }, []);
 
-            useEffect(() => {
-                if (window.location.search.includes('premium_success=true')) {
-                    gtag('event', 'purchase', {
-                        'event_category': 'Ecommerce',
-                        'event_label': 'Premium Purchase',
-                        'value': localStorage.getItem('lastPremiumPlan') === 'monthly' ? 4.99 : localStorage.getItem('lastPremiumPlan') === 'annual' ? 39.99 : 74.99,
-                        'currency': 'USD'
-                    });
-                    localStorage.setItem('isPremium', 'true');
-                    setIsPremium(true);
-                    setShowEmailGate(false);
-                    window.history.replaceState({}, document.title, window.location.pathname);
+                if (error) {
+                    return h('div', { style: { textAlign: 'center', color: '#e53e3e' } }, [
+                        h('h1', null, 'Error'),
+                        h('p', null, error),
+                        h('p', null, 'Check the console (F12) for more details.')
+                    ]);
                 }
-            }, []);
 
-            if (error) {
-                return (
-                    <div className="text-center text-red-600">
-                        <h1>Error</h1>
-                        <p>{error}</p>
-                        <p>Check the console (F12) for more details.</p>
-                    </div>
-                );
+                return h('div', null, [
+                    h('div', { style: { textAlign: 'center', marginBottom: '1.5rem' } }, [
+                        h('h1', { style: { fontSize: '2rem', fontWeight: 'bold', color: '#1f2937' } }, [
+                            'Welcome to ',
+                            h('span', { className: 'title-highlight' }, 'FieldCommand')
+                        ]),
+                        h('p', { style: { fontSize: '1.125rem', color: '#4b5563', marginTop: '0.5rem' } }, 
+                            'The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies—all in one tool.'
+                        )
+                    ]),
+                    showEmailGate ? h('div', { style: { maxWidth: '28rem', margin: '0 auto', position: 'relative' } }, [
+                        h('form', { onSubmit: handleEmailSubmit, className: 'validate', noValidate: true }, [
+                            h('label', { htmlFor: 'unlock-email', className: 'sr-only' }, 'Email'),
+                            h('input', {
+                                type: 'email',
+                                name: 'EMAIL',
+                                id: 'unlock-email',
+                                defaultValue: '',
+                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginBottom: '1rem' },
+                                placeholder: 'Enter your email to try free',
+                                required: true
+                            }),
+                            h('p', { id: 'email-error', className: 'error-message' }, 'Please enter a valid email address (e.g., user@domain.com).'),
+                            h('p', { id: 'email-success', className: `success-message ${showSuccess ? 'block' : ''}` }, 'Thanks for signing up! Starting now...'),
+                            h('div', { style: { position: 'absolute', left: '-5000px' }, 'aria-hidden': true }, 
+                                h('input', { type: 'text', name: 'b_c3a7558bf8ddc22b2955671f5_1130a67a8c', tabIndex: -1, defaultValue: '' })
+                            ),
+                            h('input', {
+                                type: 'submit',
+                                value: 'Start Planning',
+                                className: 'button-green',
+                                style: { padding: '0.75rem 1.5rem', borderRadius: '8px', width: '100%' }
+                            })
+                        ]),
+                        h('p', { style: { fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' } }, 'No credit card required—just your email to get started.')
+                    ]) : h('div', { className: 'container', style: { display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '600px' } }, [
+                        h('div', { className: 'sidebar', style: { flex: '1 1 25%' } }, [
+                            h('div', { style: { textAlign: 'center' } }, [
+                                h('h1', { className: 'title-highlight', style: { fontSize: '1.5rem', fontWeight: 'bold' } }, 'FieldCommand'),
+                                h('p', { style: { fontSize: '0.875rem', color: '#4b5563', marginTop: '0.25rem' } }, 'Baseball Defense Planner'),
+                                h('p', { style: { fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' } }, 'Plan Winning Defensive Strategies')
+                            ]),
+                            h('input', {
+                                type: 'text',
+                                value: playName,
+                                onChange: (e) => setPlayName(e.target.value),
+                                placeholder: 'Enter play name',
+                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem' }
+                            }),
+                            h('button', {
+                                onClick: savePlay,
+                                className: isPremium ? 'button-green' : 'button',
+                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem', opacity: isPremium ? 1 : 0.5 },
+                                disabled: !isPremium
+                            }, `Save Play ${isPremium ? '' : '(Premium)'}`),
+                            h('button', {
+                                onClick: resetPositions,
+                                className: 'button-gray',
+                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem' }
+                            }, 'Reset Play'),
+                            h('button', {
+                                onClick: toggleSolidMode,
+                                className: isPremium && isSolidMode ? 'button-green' : isPremium ? 'button' : 'button',
+                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem', opacity: isPremium ? 1 : 0.5 },
+                                disabled: !isPremium
+                            }, `Solid Line ${isSolidMode ? '(On)' : '(Off)'} ${isPremium ? '' : '(Premium)'}`),
+                            h('button', {
+                                onClick: toggleDottedMode,
+                                className: isPremium && isDottedMode ? 'button-green' : isPremium ? 'button' : 'button',
+                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem', opacity: isPremium ? 1 : 0.5 },
+                                disabled: !isPremium
+                            }, `Dotted Line ${isDottedMode ? '(On)' : '(Off)'} ${isPremium ? '' : '(Premium)'}`),
+                            h('div', { style: { display: 'flex', gap: '0.5rem', marginTop: '1rem' } }, [
+                                h('button', {
+                                    onClick: undoLine,
+                                    className: 'button-gray',
+                                    style: { padding: '0.75rem', borderRadius: '8px', flex: 1 }
+                                }, 'Undo'),
+                                h('button', {
+                                    onClick: resetLines,
+                                    className: 'button-gray',
+                                    style: { padding: '0.75rem', borderRadius: '8px', flex: 1 }
+                                }, 'Reset Lines')
+                            ]),
+                            !isPremium && h('button', {
+                                onClick: () => setShowPremiumModal(true),
+                                className: 'button-blue',
+                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem' }
+                            }, 'Go Premium')
+                        ]),
+                        h('div', { style: { flex: '1', display: 'flex', justifyContent: 'center' } }, [
+                            h('svg', {
+                                width: '100%',
+                                height: '100%',
+                                viewBox: '150 25 400 450',
+                                preserveAspectRatio: 'xMidYMid meet',
+                                className: 'svg-shadow',
+                                style: { maxWidth: '600px', border: '1px solid #e5e7eb', borderRadius: '8px' },
+                                onMouseDown: handleMouseDown,
+                                onMouseMove: handleMouseMove,
+                                onMouseUp: handleMouseUp,
+                                onTouchStart: handleMouseDown,
+                                onTouchMove: handleMouseMove,
+                                onTouchEnd: handleMouseUp
+                            }, [
+                                h('defs', null, [
+                                    h('marker', { id: 'arrow', markerWidth: 10, markerHeight: 10, refX: 8, refY: 3, orient: 'auto' }, 
+                                        h('path', { d: 'M0,0 L0,6 L9,3 Z', fill: 'black' })
+                                    )
+                                ]),
+                                h('path', { d: 'M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z', fill: 'burlywood' }),
+                                h('path', { d: 'M 350 425 L 250 325 L 350 225 L 450 325 Z', fill: 'rgba(0, 128, 0, 0.8)' }),
+                                h('circle', { cx: 350, cy: 325, r: 20, fill: 'burlywood' }),
+                                h('rect', { x: 340, y: 320, width: 20, height: 5, fill: 'white' }),
+                                h('path', { d: 'M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z', fill: 'white' }),
+                                h('rect', { x: 240, y: 315, width: 15, height: 15, fill: 'white', transform: 'rotate(45 250 325)' }),
+                                h('rect', { x: 340, y: 215, width: 15, height: 15, fill: 'white', transform: 'rotate(45 350 225)' }),
+                                h('rect', { x: 440, y: 315, width: 15, height: 15, fill: 'white', transform: 'rotate(45 450 325)' }),
+                                h('line', { x1: 350, y1: 425, x2: 250, y2: 325, stroke: 'white', strokeWidth: 2 }),
+                                h('line', { x1: 250, y1: 325, x2: 350, y2: 225, stroke: 'white', strokeWidth: 2 }),
+                                h('line', { x1: 350, y1: 225, x2: 450, y2: 325, stroke: 'white', strokeWidth: 2 }),
+                                h('line', { x1: 450, y1: 325, x2: 350, y2: 425, stroke: 'white', strokeWidth: 2 }),
+                                lines.map((line, index) => h('g', { key: index }, [
+                                    h('line', {
+                                        x1: line.start.x,
+                                        y1: line.start.y,
+                                        x2: line.end.x,
+                                        y2: line.end.y,
+                                        stroke: 'black',
+                                        strokeWidth: 2,
+                                        strokeDasharray: line.type === 'dotted' ? '5,5' : 'none',
+                                        markerEnd: 'url(#arrow)'
+                                    })
+                                ])),
+                                currentLine && h('g', null, [
+                                    h('line', {
+                                        x1: currentLine.start.x,
+                                        y1: currentLine.start.y,
+                                        x2: currentLine.end.x,
+                                        y2: currentLine.end.y,
+                                        stroke: 'black',
+                                        strokeWidth: 2,
+                                        strokeDasharray: currentLine.type === 'dotted' ? '5,5' : 'none',
+                                        markerEnd: 'url(#arrow)'
+                                    })
+                                ]),
+                                Object.entries(positions).map(([id, { x, y, label }]) => 
+                                    h(DraggableMarker, {
+                                        key: id,
+                                        id: id,
+                                        x: x,
+                                        y: y,
+                                        label: label,
+                                        color: id === 'baseball' ? 'white' : id.includes('runner') ? 'black' : 'red',
+                                        onDrag: handleDrag
+                                    })
+                                )
+                            ])
+                        ]),
+                        h('div', { className: 'sidebar', style: { flex: '1 1 25%' } }, [
+                            h('h2', { style: { fontSize: '1.125rem', fontWeight: '600', textAlign: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' } }, 'Saved Plays'),
+                            h('div', { style: { flex: 1, overflowY: 'auto' } }, [
+                                h('div', { className: 'grid', style: { gap: '0.5rem' } }, 
+                                    savedPlays.map((play, index) => h('div', { key: index, className: 'tooltip-container', style: { display: 'flex', gap: '0.5rem', alignItems: 'center' } }, [
+                                        h('button', {
+                                            onClick: () => loadPlay(play),
+                                            style: { flex: 1, background: '#dbeafe', padding: '0.5rem', borderRadius: '8px', textAlign: 'left' },
+                                            title: play.name
+                                        }, play.name),
+                                        h('button', {
+                                            onClick: () => openNotesModal(index),
+                                            className: 'button-yellow',
+                                            style: { padding: '0.25rem 0.5rem', borderRadius: '8px' }
+                                        }, '📝'),
+                                        play.notes && h('span', { className: 'tooltip' }, play.notes),
+                                        h('button', {
+                                            onClick: () => deletePlay(index),
+                                            className: 'button-red',
+                                            style: { padding: '0.25rem 0.5rem', borderRadius: '8px' }
+                                        }, 'Delete')
+                                    ]))
+                                )
+                            ])
+                        ]),
+                        showPremiumModal && h('div', { className: 'modal' }, [
+                            h('div', { className: 'modal-content' }, [
+                                h('h2', { style: { fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' } }, 'Upgrade to Premium'),
+                                h('p', { style: { color: '#4b5563', marginBottom: '1rem' } }, 'Unlock saving plays, drawing lines, and adding notes!'),
+                                h('button', {
+                                    onClick: () => handleGoPremium('monthly'),
+                                    className: 'button-blue',
+                                    style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' }
+                                }, '$4.99/month'),
+                                h('button', {
+                                    onClick: () => handleGoPremium('annual'),
+                                    className: 'button-blue',
+                                    style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' }
+                                }, '$39.99/year (Save 33%)'),
+                                h('button', {
+                                    onClick: () => handleGoPremium('onetime'),
+                                    className: 'button-blue',
+                                    style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' }
+                                }, '$74.99 One-Time Full Access'),
+                                h('div', { style: { display: 'flex', justifyContent: 'center', marginTop: '1rem' } }, [
+                                    h('button', {
+                                        onClick: () => setShowPremiumModal(false),
+                                        className: 'button-gray',
+                                        style: { padding: '0.5rem 1rem', borderRadius: '8px' }
+                                    }, 'Cancel')
+                                ])
+                            ])
+                        ]),
+                        showNotesModal && h('div', { className: 'modal' }, [
+                            h('div', { className: 'modal-content' }, [
+                                h('h2', { style: { fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' } }, 'Play Notes'),
+                                h('textarea', {
+                                    value: currentNotes,
+                                    onChange: (e) => setCurrentNotes(e.target.value),
+                                    placeholder: 'Add notes (e.g., 2 outs, runner on 3rd)',
+                                    style: { padding: '0.75rem', borderRadius: '8px', width: '100%', height: '8rem', resize: 'none', marginBottom: '1rem' }
+                                }),
+                                h('div', { style: { display: 'flex', justifyContent: 'center', gap: '1rem' } }, [
+                                    h('button', {
+                                        onClick: saveNotes,
+                                        className: 'button-green',
+                                        style: { padding: '0.5rem 1rem', borderRadius: '8px' }
+                                    }, 'Save Notes'),
+                                    h('button', {
+                                        onClick: () => setShowNotesModal(false),
+                                        className: 'button-gray',
+                                        style: { padding: '0.5rem 1rem', borderRadius: '8px' }
+                                    }, 'Cancel')
+                                ])
+                            ])
+                        ])
+                    ])
+                ]);
             }
 
-            return (
-                <div>
-                    <div className="text-center mb-6">
-                        <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-                            Welcome to <span className="title-highlight">FieldCommand</span>
-                        </h1>
-                        <p className="text-base md:text-lg text-gray-600 mt-2">
-                            The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies—all in one tool.
-                        </p>
-                    </div>
-                    {showEmailGate ? (
-                        <div className="max-w-md mx-auto relative">
-                            <form onSubmit={handleEmailSubmit} className="validate" noValidate>
-                                <label htmlFor="unlock-email" className="sr-only">Email</label>
-                                <input 
-                                    type="email" 
-                                    name="EMAIL" 
-                                    id="unlock-email" 
-                                    defaultValue=""
-                                    className="border border-gray-300 p-3 rounded-lg w-full mb-4 text-base focus:outline-none focus:ring-2 focus:ring-green-500" 
-                                    placeholder="Enter your email to try free" 
-                                    required 
-                                />
-                                <p id="email-error" className="error-message">Please enter a valid email address (e.g., user@domain.com).</p>
-                                <p id="email-success" className={`success-message ${showSuccess ? 'block' : 'hidden'}`}>Thanks for signing up! Starting now...</p>
-                                <div style={{ position: 'absolute', left: '-5000px' }} aria-hidden="true">
-                                    <input type="text" name="b_c3a7558bf8ddc22b2955671f5_1130a67a8c" tabIndex="-1" defaultValue="" />
-                                </div>
-                                <input 
-                                    type="submit" 
-                                    value="Start Planning" 
-                                    className="bg-green-600 text-white px-6 py-3 rounded-lg w-full text-base hover:bg-green-700 transition cursor-pointer" 
-                                />
-                            </form>
-                            <p className="text-sm text-gray-500 mt-2">No credit card required—just your email to get started.</p>
-                        </div>
-                    ) : (
-                        <div className="container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4 min-h-[600px]">
-                            <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
-                                <div className="text-center">
-                                    <h1 className="text-xl md:text-2xl font-bold title-highlight">FieldCommand</h1>
-                                    <p className="text-sm text-gray-600 mt-1">Baseball Defense Planner</p>
-                                    <p className="text-xs text-gray-500 mt-1">Plan Winning Defensive Strategies</p>
-                                </div>
-                                <input 
-                                    type="text" 
-                                    value={playName}
-                                    onChange={(e) => setPlayName(e.target.value)}
-                                    placeholder="Enter play name"
-                                    className="border border-gray-300 p-3 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-green-500"
-                                />
-                                <button 
-                                    onClick={savePlay}
-                                    className={`px-4 py-3 rounded-lg text-base ${isPremium ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} transition`}
-                                >
-                                    Save Play {isPremium ? '' : '(Premium)'}
-                                </button>
-                                <button 
-                                    onClick={resetPositions}
-                                    className="bg-gray-600 text-white px-4 py-3 rounded-lg text-base hover:bg-gray-700 transition"
-                                >
-                                    Reset Play
-                                </button>
-                                <button
-                                    onClick={toggleSolidMode}
-                                    className={`px-4 py-3 rounded-lg text-base ${isPremium ? (isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800') : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} hover:bg-green-700 hover:text-white transition`}
-                                >
-                                    Solid Line {isSolidMode ? '(On)' : '(Off)'} {isPremium ? '' : '(Premium)'}
-                                </button>
-                                <button
-                                    onClick={toggleDottedMode}
-                                    className={`px-4 py-3 rounded-lg text-base ${isPremium ? (isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800') : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} hover:bg-green-700 hover:text-white transition`}
-                                >
-                                    Dotted Line {isDottedMode ? '(On)' : '(Off)'} {isPremium ? '' : '(Premium)'}
-                                </button>
-                                <div className="split-button">
-                                    <button
-                                        onClick={undoLine}
-                                        className="bg-gray-600 text-white px-4 py-3 text-base hover:bg-gray-700 transition"
-                                    >
-                                        Undo
-                                    </button>
-                                    <button
-                                        onClick={resetLines}
-                                        className="bg-gray-600 text-white px-4 py-3 text-base hover:bg-gray-700 transition"
-                                    >
-                                        Reset Lines
-                                    </button>
-                                </div>
-                                {!isPremium && (
-                                    <button
-                                        onClick={() => setShowPremiumModal(true)}
-                                        className="bg-blue-600 text-white px-4 py-3 rounded-lg text-base hover:bg-blue-700 transition"
-                                    >
-                                        Go Premium
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="flex-1 flex justify-center w-full">
-                                <svg 
-                                    width="100%" 
-                                    height="100%" 
-                                    viewBox="150 25 400 450" 
-                                    preserveAspectRatio="xMidYMid meet"
-                                    className="border rounded-lg svg-shadow w-full max-w-[600px] h-auto" 
-                                    style={{ backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' }} 
-                                    onMouseDown={handleMouseDown}
-                                    onMouseMove={handleMouseMove}
-                                    onMouseUp={handleMouseUp}
-                                    onTouchStart={handleMouseDown}
-                                    onTouchMove={handleMouseMove}
-                                    onTouchEnd={handleMouseUp}
-                                >
-                                    <defs>
-                                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-                                            <path d="M0,0 L0,6 L9,3 Z" fill="black" />
-                                        </marker>
-                                    </defs>
-                                    <path 
-                                        d="M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z" 
-                                        fill="burlywood"
-                                    />
-                                    <path 
-                                        d="M 350 425 L 250 325 L 350 225 L 450 325 Z" 
-                                        fill="rgba(0, 128, 0, 0.8)"
-                                    />
-                                    <circle cx="350" cy="325" r="20" fill="burlywood" />
-                                    <rect x="340" y="320" width="20" height="5" fill="white" />
-                                    <path 
-                                        d="M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z" 
-                                        fill="white"
-                                    />
-                                    <rect x="240" y="315" width="15" height="15" fill="white" transform="rotate(45 250 325)" />
-                                    <rect x="340" y="215" width="15" height="15" fill="white" transform="rotate(45 350 225)" />
-                                    <rect x="440" y="315" width="15" height="15" fill="white" transform="rotate(45 450 325)" />
-                                    <line x1="350" y1="425" x2="250" y2="325" stroke="white" strokeWidth="2" />
-                                    <line x1="250" y1="325" x2="350" y2="225" stroke="white" strokeWidth="2" />
-                                    <line x1="350" y1="225" x2="450" y2="325" stroke="white" strokeWidth="2" />
-                                    <line x1="450" y1="325" x2="350" y2="425" stroke="white" strokeWidth="2" />
-                                    {lines.map((line, index) => (
-                                        <g key={index}>
-                                            <line
-                                                x1={line.start.x}
-                                                y1={line.start.y}
-                                                x2={line.end.x}
-                                                y2={line.end.y}
-                                                stroke="black"
-                                                strokeWidth="2"
-                                                strokeDasharray={line.type === 'dotted' ? '5,5' : 'none'}
-                                                markerEnd="url(#arrow)"
-                                            />
-                                        </g>
-                                    ))}
-                                    {currentLine && (
-                                        <g>
-                                            <line
-                                                x1={currentLine.start.x}
-                                                y1={currentLine.start.y}
-                                                x2={currentLine.end.x}
-                                                y2={currentLine.end.y}
-                                                stroke="black"
-                                                strokeWidth="2"
-                                                strokeDasharray={currentLine.type === 'dotted' ? '5,5' : 'none'}
-                                                markerEnd="url(#arrow)"
-                                            />
-                                        </g>
-                                    )}
-                                    {Object.entries(positions).map(([id, { x, y, label }]) => (
-                                        <DraggableMarker 
-                                            key={id} 
-                                            id={id} 
-                                            x={x} 
-                                            y={y} 
-                                            label={label}
-                                            color={id === 'baseball' ? 'white' : id.includes('runner') ? 'black' : 'red'}
-                                            onDrag={handleDrag}
-                                        />
-                                    ))}
-                                </svg>
-                            </div>
-
-                            <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
-                                <h2 className="text-lg font-semibold text-gray-800 text-center border-b border-gray-200 pb-2">Saved Plays</h2>
-                                <div className="flex-1 overflow-y-auto">
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {savedPlays.map((play, index) => (
-                                            <div key={index} className="flex items-center gap-2 relative tooltip-container">
-                                                <button 
-                                                    onClick={() => loadPlay(play)}
-                                                    className="flex-1 bg-blue-100 p-2 rounded-lg hover:bg-blue-200 text-sm truncate transition text-gray-800"
-                                                    title={play.name}
-                                                >
-                                                    {play.name}
-                                                </button>
-                                                <button 
-                                                    onClick={() => openNotesModal(index)}
-                                                    className="bg-yellow-500 text-white px-2 py-1 rounded-lg text-sm hover:bg-yellow-600 transition"
-                                                >
-                                                    📝
-                                                </button>
-                                                {play.notes && (
-                                                    <span className="tooltip">{play.notes}</span>
-                                                )}
-                                                <button 
-                                                    onClick={() => deletePlay(index)}
-                                                    className="bg-red-600 text-white px-2 py-1 rounded-lg text-sm hover:bg-red-700 transition"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {showPremiumModal && (
-                                <div className="modal">
-                                    <div className="modal-content p-6">
-                                        <h2 className="text-xl font-bold mb-4">Upgrade to Premium</h2>
-                                        <p className="text-gray-600 mb-4">Unlock saving plays, drawing lines, and adding notes!</p>
-                                        <button
-                                            onClick={() => handleGoPremium('monthly')}
-                                            className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mb-2"
-                                        >
-                                            $4.99/month
-                                        </button>
-                                        <button
-                                            onClick={() => handleGoPremium('annual')}
-                                            className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mb-2"
-                                        >
-                                            $39.99/year (Save 33%)
-                                        </button>
-                                        <button
-                                            onClick={() => handleGoPremium('onetime')}
-                                            className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mb-2"
-                                        >
-                                            $74.99 One-Time Full Access
-                                        </button>
-                                        <div className="flex justify-center mt-4">
-                                            <button
-                                                onClick={() => setShowPremiumModal(false)}
-                                                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {showNotesModal && (
-                                <div className="modal">
-                                    <div className="modal-content p-6">
-                                        <h2 className="text-xl font-bold mb-4">Play Notes</h2>
-                                        <textarea
-                                            value={currentNotes}
-                                            onChange={(e) => setCurrentNotes(e.target.value)}
-                                            placeholder="Add notes (e.g., 2 outs, runner on 3rd)"
-                                            className="border border-gray-300 p-3 rounded-lg text-base w-full h-32 resize-none focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
-                                        />
-                                        <div className="flex justify-center gap-4">
-                                            <button
-                                                onClick={saveNotes}
-                                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-                                            >
-                                                Save Notes
-                                            </button>
-                                            <button
-                                                onClick={() => setShowNotesModal(false)}
-                                                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            );
+            render(h(BaseballField), document.getElementById('root'));
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<BaseballField />);
+        // Start the app once DOM and scripts are ready
+        window.addEventListener('load', initApp);
     </script>
 </body>
 </html>
