@@ -54,12 +54,26 @@
             background: #f8fafc;
             border-radius: 8px;
         }
-        .error-message {
-            color: #e53e3e;
+        .error-message, .success-message {
             font-size: 0.875rem;
             margin-top: -0.5rem;
             margin-bottom: 1rem;
             display: none;
+        }
+        .error-message {
+            color: #e53e3e;
+        }
+        .success-message {
+            color: #2f855a;
+            background: #f0fff4;
+            padding: 0.5rem;
+            border-radius: 4px;
+            position: absolute;
+            top: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            text-align: center;
         }
         input, button, textarea {
             font-size: 16px;
@@ -145,7 +159,6 @@
             app = firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             auth = firebase.auth();
-            console.log("Firebase initialized successfully");
         } catch (error) {
             console.error("Firebase initialization failed:", error);
         }
@@ -282,6 +295,7 @@
                 localStorage.getItem('fieldCommandUnlocked') !== 'true' && !isPremium
             );
             const [error, setError] = useState(null);
+            const [showSuccess, setShowSuccess] = useState(false);
 
             useEffect(() => {
                 if (!app || !db || !auth) {
@@ -291,7 +305,6 @@
 
                 auth.signInAnonymously()
                     .then((userCredential) => {
-                        console.log("Signed in anonymously with UID:", userCredential.user.uid);
                         const userId = userCredential.user.uid;
                         db.collection('users').doc(userId).collection('plays')
                             .onSnapshot((querySnapshot) => {
@@ -301,7 +314,6 @@
                                 });
                                 setSavedPlays(plays);
                                 document.getElementById('loading').style.display = 'none';
-                                console.log("Plays loaded:", plays);
                             }, (error) => {
                                 console.error('Error loading plays:', error);
                                 setError("Failed to load plays: " + error.message);
@@ -333,6 +345,7 @@
                 e.preventDefault();
                 const email = e.target.querySelector('#unlock-email').value;
                 const errorMessage = e.target.querySelector('#email-error');
+                const successMessage = e.target.querySelector('#email-success');
 
                 if (!emailRegex.test(email)) {
                     errorMessage.style.display = 'block';
@@ -356,7 +369,11 @@
                         body: formData,
                         mode: 'no-cors'
                     });
-                    alert('Thanks for signing up! You can now use FieldCommand.');
+                    setShowSuccess(true);
+                    setTimeout(() => {
+                        setShowSuccess(false);
+                        setShowEmailGate(false);
+                    }, 2000);
                     gtag('event', 'unlock_app_success', {
                         'event_category': 'Engagement',
                         'event_label': 'Email Submission Success',
@@ -364,7 +381,8 @@
                     });
                 } catch (error) {
                     console.error('Error submitting to Mailchimp:', error);
-                    alert('Something went wrong. Please try again.');
+                    errorMessage.textContent = "Something went wrong. Please try again.";
+                    errorMessage.style.display = 'block';
                     gtag('event', 'unlock_app_error', {
                         'event_category': 'Engagement',
                         'event_label': 'Email Submission Error'
@@ -372,7 +390,6 @@
                 }
 
                 localStorage.setItem('fieldCommandUnlocked', 'true');
-                setShowEmailGate(false);
             };
 
             const handleDrag = (id, newX, newY) => {
@@ -398,7 +415,6 @@
                     setSavedPlays(newSavedPlays);
                     if (auth.currentUser) {
                         db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playName).set(newPlay)
-                            .then(() => console.log("Play saved:", playName))
                             .catch((error) => console.error('Error saving play:', error));
                     }
                     setPlayName('');
@@ -417,7 +433,6 @@
                 setSavedPlays(newSavedPlays);
                 if (auth.currentUser) {
                     db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playToDelete.name).delete()
-                        .then(() => console.log("Play deleted:", playToDelete.name))
                         .catch((error) => console.error('Error deleting play:', error));
                 }
                 resetPositions();
@@ -542,11 +557,9 @@
                     });
                     if (result.error) {
                         console.error('Stripe checkout error:', result.error.message);
-                        alert('Failed to initiate checkout: ' + result.error.message);
                     }
                 } catch (error) {
                     console.error('Error in handleGoPremium:', error);
-                    alert('An error occurred while processing your request. Please try again.');
                 }
             };
 
@@ -567,7 +580,6 @@
                     setSavedPlays(updatedPlays);
                     if (auth.currentUser) {
                         db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(updatedPlays[currentPlayIndex].name).set(updatedPlays[currentPlayIndex])
-                            .then(() => console.log("Notes saved for:", updatedPlays[currentPlayIndex].name))
                             .catch((error) => console.error('Error saving notes:', error));
                     }
                 }
@@ -612,7 +624,7 @@
                         </p>
                     </div>
                     {showEmailGate ? (
-                        <div className="max-w-md mx-auto">
+                        <div className="max-w-md mx-auto relative">
                             <form onSubmit={handleEmailSubmit} className="validate" noValidate>
                                 <label htmlFor="unlock-email" className="sr-only">Email</label>
                                 <input 
@@ -625,6 +637,7 @@
                                     required 
                                 />
                                 <p id="email-error" className="error-message">Please enter a valid email address (e.g., user@domain.com).</p>
+                                <p id="email-success" className={`success-message ${showSuccess ? 'block' : 'hidden'}`}>Thanks for signing up! Starting now...</p>
                                 <div style={{ position: 'absolute', left: '-5000px' }} aria-hidden="true">
                                     <input type="text" name="b_c3a7558bf8ddc22b2955671f5_1130a67a8c" tabIndex="-1" defaultValue="" />
                                 </div>
