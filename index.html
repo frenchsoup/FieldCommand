@@ -8,12 +8,11 @@
     <meta property="og:title" content="⚾ FieldCommand: Baseball Defense Planner">
     <meta property="og:description" content="Plan baseball plays with ease! ⚾ Draw strategies and position players on your iPad or phone.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://username.github.io/fieldcommand">
+    <meta property="og:url" content="https://fieldcommand.netlify.app">
     <title>FieldCommand: Baseball Defense Planner</title>
     <link rel="preconnect" href="https://js.stripe.com">
     <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-KCRLDQSSEY"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -26,6 +25,9 @@
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -127,6 +129,26 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCrSN8xc3KTGrc2gUzcqerL6SSYrF3LXZM",
+            authDomain: "fieldcommand.firebaseapp.com",
+            projectId: "fieldcommand",
+            storageBucket: "fieldcommand.firebasestorage.app",
+            messagingSenderId: "944064034218",
+            appId: "1:944064034218:web:bb6744acdd0d66e9ba27d3",
+            measurementId: "G-C3TQ7DWTX8"
+        };
+
+        let app, db, auth;
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            auth = firebase.auth();
+            console.log("Firebase initialized successfully");
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+        }
 
         let stripe;
         const stripePromise = new Promise((resolve) => {
@@ -245,7 +267,7 @@
         function BaseballField() {
             const [positions, setPositions] = useState(initialPositions);
             const [playName, setPlayName] = useState('');
-            const [savedPlays, setSavedPlays] = useState(JSON.parse(localStorage.getItem('savedPlays')) || []);
+            const [savedPlays, setSavedPlays] = useState([]);
             const [isSolidMode, setIsSolidMode] = useState(false);
             const [isDottedMode, setIsDottedMode] = useState(false);
             const [drawing, setDrawing] = useState(false);
@@ -259,9 +281,36 @@
             const [showEmailGate, setShowEmailGate] = useState(
                 localStorage.getItem('fieldCommandUnlocked') !== 'true' && !isPremium
             );
+            const [error, setError] = useState(null);
 
             useEffect(() => {
-                document.getElementById('loading').style.display = 'none';
+                if (!app || !db || !auth) {
+                    setError("Firebase not initialized. Check console for details.");
+                    return;
+                }
+
+                auth.signInAnonymously()
+                    .then((userCredential) => {
+                        console.log("Signed in anonymously with UID:", userCredential.user.uid);
+                        const userId = userCredential.user.uid;
+                        db.collection('users').doc(userId).collection('plays')
+                            .onSnapshot((querySnapshot) => {
+                                const plays = [];
+                                querySnapshot.forEach((doc) => {
+                                    plays.push(doc.data());
+                                });
+                                setSavedPlays(plays);
+                                document.getElementById('loading').style.display = 'none';
+                                console.log("Plays loaded:", plays);
+                            }, (error) => {
+                                console.error('Error loading plays:', error);
+                                setError("Failed to load plays: " + error.message);
+                            });
+                    })
+                    .catch((error) => {
+                        console.error('Error signing in anonymously:', error);
+                        setError("Authentication failed: " + error.message);
+                    });
             }, []);
 
             const getClientPosition = (e) => {
@@ -314,7 +363,7 @@
                         'value': 1
                     });
                 } catch (error) {
-                    // console.error('Error submitting to Mailchimp:', error);
+                    console.error('Error submitting to Mailchimp:', error);
                     alert('Something went wrong. Please try again.');
                     gtag('event', 'unlock_app_error', {
                         'event_category': 'Engagement',
@@ -339,14 +388,19 @@
                     return;
                 }
                 if (playName) {
-                    const newSavedPlays = [...savedPlays, { 
+                    const newPlay = { 
                         name: playName, 
                         positions: { ...positions }, 
                         lines: [...lines], 
                         notes: '' 
-                    }];
+                    };
+                    const newSavedPlays = [...savedPlays, newPlay];
                     setSavedPlays(newSavedPlays);
-                    localStorage.setItem('savedPlays', JSON.stringify(newSavedPlays));
+                    if (auth.currentUser) {
+                        db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playName).set(newPlay)
+                            .then(() => console.log("Play saved:", playName))
+                            .catch((error) => console.error('Error saving play:', error));
+                    }
                     setPlayName('');
                 }
             };
@@ -358,9 +412,14 @@
             };
 
             const deletePlay = (index) => {
+                const playToDelete = savedPlays[index];
                 const newSavedPlays = savedPlays.filter((_, i) => i !== index);
                 setSavedPlays(newSavedPlays);
-                localStorage.setItem('savedPlays', JSON.stringify(newSavedPlays));
+                if (auth.currentUser) {
+                    db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playToDelete.name).delete()
+                        .then(() => console.log("Play deleted:", playToDelete.name))
+                        .catch((error) => console.error('Error deleting play:', error));
+                }
                 resetPositions();
             };
 
@@ -482,11 +541,11 @@
                         cancelUrl: window.location.href
                     });
                     if (result.error) {
-                        // console.error('Stripe checkout error:', result.error.message);
+                        console.error('Stripe checkout error:', result.error.message);
                         alert('Failed to initiate checkout: ' + result.error.message);
                     }
                 } catch (error) {
-                    // console.error('Error in handleGoPremium:', error);
+                    console.error('Error in handleGoPremium:', error);
                     alert('An error occurred while processing your request. Please try again.');
                 }
             };
@@ -506,7 +565,11 @@
                     const updatedPlays = [...savedPlays];
                     updatedPlays[currentPlayIndex] = { ...updatedPlays[currentPlayIndex], notes: currentNotes };
                     setSavedPlays(updatedPlays);
-                    localStorage.setItem('savedPlays', JSON.stringify(updatedPlays));
+                    if (auth.currentUser) {
+                        db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(updatedPlays[currentPlayIndex].name).set(updatedPlays[currentPlayIndex])
+                            .then(() => console.log("Notes saved for:", updatedPlays[currentPlayIndex].name))
+                            .catch((error) => console.error('Error saving notes:', error));
+                    }
                 }
                 setShowNotesModal(false);
                 setCurrentPlayIndex(null);
@@ -527,6 +590,16 @@
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             }, []);
+
+            if (error) {
+                return (
+                    <div className="text-center text-red-600">
+                        <h1>Error</h1>
+                        <p>{error}</p>
+                        <p>Check the console (F12) for more details.</p>
+                    </div>
+                );
+            }
 
             return (
                 <div>
