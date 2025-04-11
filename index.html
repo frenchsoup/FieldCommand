@@ -122,10 +122,10 @@
         <div id="root" role="application" aria-label="FieldCommand Baseball Defense Planner"></div>
     </div>
 
-    <!-- Scripts with jsdelivr CDN and integrity -->
+    <!-- Scripts with logging and unpkg -->
     <script src="https://js.stripe.com/v3/"></script>
-    <script src="https://cdn.jsdelivr.net/npm/preact@10.11.0/dist/preact.umd.js" integrity="sha256-27lwNkjauOB8AY+hZIf3qGBrAK9jnEu7Fbn08DJuK8Q=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/preact@10.11.0/hooks/dist/hooks.umd.js" integrity="sha256-5cHVt0O5TKG5P+m6m/eD8aY+NKgqKzWJZ6VDLx69R+I=" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/preact@10.11.0/dist/preact.umd.js" onload="console.log('Preact script loaded')" onerror="console.error('Preact script failed to load')"></script>
+    <script src="https://unpkg.com/preact@10.11.0/hooks/dist/hooks.umd.js" onload="console.log('Preact Hooks script loaded')" onerror="console.error('Preact Hooks script failed to load')"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -135,8 +135,10 @@
 
         function initApp() {
             console.log('initApp called');
+            console.log('Preact:', window.Preact);
+            console.log('PreactHooks:', window.PreactHooks);
             if (typeof Preact === 'undefined' || typeof PreactHooks === 'undefined') {
-                console.error('Preact failed to load after 5s');
+                console.error('Preact failed to load');
                 document.getElementById('loading').innerHTML = '<div style="text-align: center; color: #e53e3e;">Failed to load app. Please check your connection and refresh.</div>';
                 return;
             }
@@ -776,11 +778,10 @@
             render(h(BaseballField), document.getElementById('root'));
         }
 
-        // Increased delay to 1000ms
         setTimeout(() => {
             console.log('Starting initApp after delay');
             initApp();
-        }, 1000);
+        }, 2000);
     </script>
 </body>
 </html>
