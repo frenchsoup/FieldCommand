@@ -114,6 +114,10 @@
         .button-blue { background-color: #2563eb; color: white; }
         .button-red { background-color: #dc2626; color: white; }
         .button-yellow { background-color: #d97706; color: white; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -125,12 +129,16 @@
     </div>
 
     <script type="text/javascript">
-        // Wait for Preact to load
+        console.log('Script started');
+
         function initApp() {
+            console.log('initApp called');
             if (typeof Preact === 'undefined' || typeof PreactHooks === 'undefined') {
-                setTimeout(initApp, 100); // Retry every 100ms
+                console.log('Preact not loaded yet, retrying...');
+                setTimeout(initApp, 100);
                 return;
             }
+            console.log('Preact loaded');
 
             const { h, render } = Preact;
             const { useState, useEffect } = PreactHooks;
@@ -147,9 +155,11 @@
 
             let app, db, auth;
             try {
+                console.log('Initializing Firebase');
                 app = firebase.initializeApp(firebaseConfig);
                 db = firebase.firestore();
                 auth = firebase.auth();
+                console.log('Firebase initialized');
             } catch (error) {
                 console.error("Firebase initialization failed:", error);
             }
@@ -174,7 +184,7 @@
                 catcher: { x: 350, y: 455, label: 'C' },
                 first: { x: 450, y: 275, label: '1B' },
                 second: { x: 400, y: 205, label: '2B' },
-                third: { x:  NED250, y: 275, label: '3B' },
+                third: { x: 250, y: 275, label: '3B' },
                 shortstop: { x: 300, y: 205, label: 'SS' },
                 left: { x: 225, y: 125, label: 'LF' },
                 center: { x: 350, y: 75, label: 'CF' },
@@ -268,17 +278,23 @@
                 const [showSuccess, setShowSuccess] = useState(false);
 
                 useEffect(() => {
+                    console.log('useEffect running');
                     if (!app || !db || !auth) {
                         setError("Firebase not initialized. Check console for details.");
+                        console.log('Firebase not initialized');
                         return;
                     }
+                    console.log('Attempting anonymous sign-in');
                     auth.signInAnonymously().then((userCredential) => {
+                        console.log('Signed in anonymously:', userCredential.user.uid);
                         const userId = userCredential.user.uid;
                         db.collection('users').doc(userId).collection('plays').onSnapshot((querySnapshot) => {
+                            console.log('Firestore snapshot received');
                             const plays = [];
                             querySnapshot.forEach((doc) => plays.push(doc.data()));
                             setSavedPlays(plays);
                             document.getElementById('loading').style.display = 'none';
+                            console.log('Loader hidden, plays loaded:', plays);
                         }, (error) => {
                             console.error('Error loading plays:', error);
                             setError("Failed to load plays: " + error.message);
@@ -506,6 +522,7 @@
                 }, []);
 
                 if (error) {
+                    console.log('Rendering error state');
                     return h('div', { style: { textAlign: 'center', color: '#e53e3e' } }, [
                         h('h1', null, 'Error'),
                         h('p', null, error),
@@ -513,6 +530,7 @@
                     ]);
                 }
 
+                console.log('Rendering main UI');
                 return h('div', null, [
                     h('div', { style: { textAlign: 'center', marginBottom: '1.5rem' } }, [
                         h('h1', { style: { fontSize: '2rem', fontWeight: 'bold', color: '#1f2937' } }, [
@@ -752,11 +770,14 @@
                 ]);
             }
 
+            console.log('Rendering app');
             render(h(BaseballField), document.getElementById('root'));
         }
 
-        // Start the app once DOM and scripts are ready
-        window.addEventListener('load', initApp);
+        window.addEventListener('load', () => {
+            console.log('Window loaded');
+            initApp();
+        });
     </script>
 </body>
 </html>
