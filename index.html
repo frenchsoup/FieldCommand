@@ -122,10 +122,10 @@
         <div id="root" role="application" aria-label="FieldCommand Baseball Defense Planner"></div>
     </div>
 
-    <!-- Scripts with logging and unpkg -->
+    <!-- Scripts with shim -->
     <script src="https://js.stripe.com/v3/"></script>
-    <script src="https://unpkg.com/preact@10.11.0/dist/preact.umd.js" onload="console.log('Preact script loaded')" onerror="console.error('Preact script failed to load')"></script>
-    <script src="https://unpkg.com/preact@10.11.0/hooks/dist/hooks.umd.js" onload="console.log('Preact Hooks script loaded')" onerror="console.error('Preact Hooks script failed to load')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preact@10.11.0/dist/preact.umd.js" onload="console.log('Preact script loaded')" onerror="console.error('Preact script failed to load')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preact@10.11.0/hooks/dist/hooks.umd.js" onload="console.log('Preact Hooks script loaded')" onerror="console.error('Preact Hooks script failed to load')"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -133,12 +133,16 @@
     <script type="text/javascript">
         console.log('Script started');
 
+        // Shim to ensure Preact globals are set
+        window.Preact = window.Preact || {};
+        window.PreactHooks = window.PreactHooks || {};
+
         function initApp() {
             console.log('initApp called');
             console.log('Preact:', window.Preact);
             console.log('PreactHooks:', window.PreactHooks);
-            if (typeof Preact === 'undefined' || typeof PreactHooks === 'undefined') {
-                console.error('Preact failed to load');
+            if (typeof Preact === 'undefined' || typeof Preact.h === 'undefined' || typeof PreactHooks.useState === 'undefined') {
+                console.error('Preact or Hooks incomplete');
                 document.getElementById('loading').innerHTML = '<div style="text-align: center; color: #e53e3e;">Failed to load app. Please check your connection and refresh.</div>';
                 return;
             }
