@@ -9,7 +9,12 @@
     <meta property="og:description" content="Plan baseball plays with ease! ⚾ Draw strategies and position players on your iPad or phone.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://fieldcommand.netlify.app">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com; script-src 'self' 'unsafe-inline' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://us20.list-manage.com https://firestore.googleapis.com https://www.google-analytics.com">
     <title>FieldCommand: Baseball Defense Planner</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
     <link rel="preconnect" href="https://js.stripe.com">
     <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
@@ -122,10 +127,9 @@
         <div id="root" role="application" aria-label="FieldCommand Baseball Defense Planner"></div>
     </div>
 
-    <!-- Scripts with shim -->
     <script src="https://js.stripe.com/v3/"></script>
-    <script src="https://cdn.jsdelivr.net/npm/preact@10.11.0/dist/preact.umd.js" onload="console.log('Preact script loaded')" onerror="console.error('Preact script failed to load')"></script>
-    <script src="https://cdn.jsdelivr.net/npm/preact@10.11.0/hooks/dist/hooks.umd.js" onload="console.log('Preact Hooks script loaded')" onerror="console.error('Preact Hooks script failed to load')"></script>
+    <script src="https://unpkg.com/preact@10.22.1/dist/preact.umd.js" onload="console.log('Preact script loaded')" onerror="console.error('Preact script failed to load')"></script>
+    <script src="https://unpkg.com/preact@10.22.1/hooks/dist/hooks.umd.js" onload="console.log('Preact Hooks script loaded')" onerror="console.error('Preact Hooks script failed to load')"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -133,23 +137,20 @@
     <script type="text/javascript">
         console.log('Script started');
 
-        // Shim to ensure Preact globals are set
-        window.Preact = window.Preact || {};
-        window.PreactHooks = window.PreactHooks || {};
-
         function initApp() {
             console.log('initApp called');
             console.log('Preact:', window.Preact);
             console.log('PreactHooks:', window.PreactHooks);
-            if (typeof Preact === 'undefined' || typeof Preact.h === 'undefined' || typeof PreactHooks.useState === 'undefined') {
+            if (typeof window.Preact === 'undefined' || typeof window.Preact.h === 'undefined' || 
+                typeof window.PreactHooks === 'undefined' || typeof window.PreactHooks.useState === 'undefined') {
                 console.error('Preact or Hooks incomplete');
                 document.getElementById('loading').innerHTML = '<div style="text-align: center; color: #e53e3e;">Failed to load app. Please check your connection and refresh.</div>';
                 return;
             }
             console.log('Preact loaded');
 
-            const { h, render } = Preact;
-            const { useState, useEffect } = PreactHooks;
+            const { h, render } = window.Preact;
+            const { useState, useEffect } = window.PreactHooks;
 
             const firebaseConfig = {
                 apiKey: "AIzaSyCrSN8xc3KTGrc2gUzcqerL6SSYrF3LXZM",
@@ -500,7 +501,7 @@
                 };
 
                 const saveNotes = () => {
-                    if (currentPlayIndex !== null) {
+                    if (currentPlayIndex !== W) {
                         const updatedPlays = [...savedPlays];
                         updatedPlays[currentPlayIndex] = { ...updatedPlays[currentPlayIndex], notes: currentNotes };
                         setSavedPlays(updatedPlays);
@@ -782,10 +783,29 @@
             render(h(BaseballField), document.getElementById('root'));
         }
 
-        setTimeout(() => {
-            console.log('Starting initApp after delay');
-            initApp();
-        }, 2000);
+        // Polling with timeout
+        function waitForPreact() {
+            const maxWaitTime = 10000; // 10 seconds
+            const startTime = Date.now();
+
+            function checkPreact() {
+                if (typeof window.Preact !== 'undefined' && typeof window.Preact.h !== 'undefined' && 
+                    typeof window.PreactHooks !== 'undefined' && typeof window.PreactHooks.useState !== 'undefined') {
+                    console.log('Preact globals ready');
+                    initApp();
+                } else if (Date.now() - startTime > maxWaitTime) {
+                    console.error('Preact globals timeout');
+                    document.getElementById('loading').innerHTML = '<div style="text-align: center; color: #e53e3e;">Failed to load app. Please refresh or check your connection.</div>';
+                } else {
+                    console.log('Waiting for Preact globals...');
+                    setTimeout(checkPreact, 500);
+                }
+            }
+            checkPreact();
+        }
+
+        console.log('Starting Preact wait');
+        waitForPreact();
     </script>
 </body>
 </html>
