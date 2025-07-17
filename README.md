@@ -5,11 +5,23 @@ FieldCommand is a web app for planning baseball defensive strategies. Position p
 ## Features
 
 - Drag and drop player markers on a baseball field
-- Draw solid and dotted lines to illustrate plays
-- Save and load custom defensive plays
-- Add notes to each play
+- Draw solid and dotted lines to illustrate plays (Premium)
+- Save and load custom defensive plays (Premium)
+- Add notes to each play (Premium)
 - Email gate for free trial access
-- Premium features unlock saving and advanced tools
+- Premium features unlock saving, drawing, and advanced tools
+- Responsive design for desktop, tablet, and mobile
+- Secure authentication and cloud sync via Firebase
+- Stripe integration for premium upgrades
+
+## Technologies
+
+- [Preact](https://preactjs.com/) for UI
+- [Firebase](https://firebase.google.com/) for authentication and Firestore database
+- [Stripe](https://stripe.com/) for payments
+- [PicoCSS](https://picocss.com/) for styling
+- Google Analytics (enabled in production)
+- Strict Content Security Policy (CSP)
 
 ## Getting Started (Local Development)
 
@@ -40,21 +52,19 @@ FieldCommand is a web app for planning baseball defensive strategies. Position p
 ### File Structure
 
 - `index.html` — Main HTML file, loads all scripts and styles externally
-- `main.js` — All app logic and UI rendering (Preact)
-- `style.css` — All custom styles
-- `site.webmanifest` — PWA manifest (optional)
+- `site.webmanifest` — PWA manifest
 - `assets/` — Icons and images
 
 ### CSP & Security
 
-- No inline `<script>` or `<style>` tags (all JS and CSS are external)
+- No inline `<script>` or `<style>` tags (all JS and CSS are external except for the main app logic)
 - Content Security Policy (CSP) is strict for security
-- Google Analytics is commented out for local development
+- Google Analytics is enabled in production
 
 ## Customization
 
-- Update `main.js` to change UI logic or add integrations (Firebase, Stripe, etc.)
-- Update `style.css` for custom styles and themes
+- Update the main script in `index.html` to change UI logic or add integrations (Firebase, Stripe, etc.)
+- Update styles in the `<style>` block or add external CSS for custom themes
 
 ## Deployment
 
@@ -73,4 +83,4 @@ MIT
 
 ---
 
-**Made with Preact, PicoCSS, and ❤️ for baseball
+**Made with Preact, PicoCSS, Firebase, Stripe, and ❤️ for baseball
