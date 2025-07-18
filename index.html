@@ -18,6 +18,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="preconnect" href="https://js.stripe.com">
     <link rel="preconnect" href="https://www.googletagmanager.com">
@@ -181,40 +182,31 @@
         <div id="root" role="application" aria-label="FieldCommand Baseball Defense Planner"></div>
     </div>
 
-    <script src="https://js.stripe.com/v3/" onload="console.log('Stripe script loaded')"
-        onerror="console.error('Stripe script failed to load')"></script>
-    <script src="https://unpkg.com/preact@10.19.2/dist/preact.umd.js" onload="console.log('Preact core loaded')"
-        onerror="console.error('Preact core failed to load')"></script>
-    <script src="https://unpkg.com/preact@10.19.2/hooks/dist/hooks.umd.js" onload="console.log('Preact Hooks loaded')"
-        onerror="console.error('Preact Hooks failed to load')"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"
-        onload="console.log('Firebase App script loaded')"
-        onerror="console.error('Firebase App script failed to load')"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"
-        onload="console.log('Firebase Firestore script loaded')"
-        onerror="console.error('Firebase Firestore script failed to load')"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"
-        onload="console.log('Firebase Auth script loaded')"
-        onerror="console.error('Firebase Auth script failed to load')"></script>
-
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://unpkg.com/preact@10.19.2/dist/preact.umd.js"></script>
+    <script src="https://unpkg.com/preact@10.19.2/hooks/dist/hooks.umd.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script>
+        setTimeout(() => {
+            console.log('Preact globals check:', {
+                Preact: window.Preact,
+                PreactHooks: window.Preact && window.Preact.hooks
+            });
+        }, 1000);
+    </script>
     <script type="text/javascript">
-        console.log('Script started');
-
         function initApp() {
-            console.log('initApp called');
-            console.log('Preact:', window.Preact);
-            console.log('PreactHooks:', window.PreactHooks);
             if (
                 typeof window.Preact === 'undefined' ||
                 typeof window.Preact.h === 'undefined' ||
                 typeof window.PreactHooks === 'undefined' ||
                 typeof window.PreactHooks.useState === 'undefined'
             ) {
-                console.error('Preact or Hooks incomplete');
                 document.getElementById('loading').innerHTML = '<div style="text-align: center; color: #e53e3e;">Failed to load app. Please check your connection and refresh.</div>';
                 return;
             }
-            console.log('Preact loaded');
 
             const { h, render } = window.Preact;
             const { useState, useEffect } = window.PreactHooks;
@@ -231,11 +223,9 @@
 
             let app, db, auth;
             try {
-                console.log('Initializing Firebase');
                 app = firebase.initializeApp(firebaseConfig);
                 db = firebase.firestore();
                 auth = firebase.auth();
-                console.log('Firebase initialized');
             } catch (error) {
                 console.error("Firebase initialization failed:", error);
             }
@@ -354,29 +344,21 @@
                 const [showSuccess, setShowSuccess] = useState(false);
 
                 useEffect(() => {
-                    console.log('useEffect running');
                     if (!app || !db || !auth) {
                         setError("Firebase not initialized. Check console for details.");
-                        console.log('Firebase not initialized');
                         return;
                     }
-                    console.log('Attempting anonymous sign-in');
                     auth.signInAnonymously().then((userCredential) => {
-                        console.log('Signed in anonymously:', userCredential.user.uid);
                         const userId = userCredential.user.uid;
                         db.collection('users').doc(userId).collection('plays').onSnapshot((querySnapshot) => {
-                            console.log('Firestore snapshot received');
                             const plays = [];
                             querySnapshot.forEach((doc) => plays.push(doc.data()));
                             setSavedPlays(plays);
                             document.getElementById('loading').style.display = 'none';
-                            console.log('Loader hidden, plays loaded:', plays);
                         }, (error) => {
-                            console.error('Error loading plays:', error);
                             setError("Failed to load plays: " + error.message);
                         });
                     }).catch((error) => {
-                        console.error('Error signing in anonymously:', error);
                         setError("Authentication failed: " + error.message);
                     });
                 }, []);
@@ -422,7 +404,6 @@
                         }, 2000);
                         gtag('event', 'unlock_app_success', { event_category: 'Engagement', event_label: 'Email Submission Success', value: 1 });
                     } catch (error) {
-                        console.error('Error submitting to Mailchimp:', error);
                         errorMessage.textContent = "Something went wrong. Please try again.";
                         errorMessage.style.display = 'block';
                         gtag('event', 'unlock_app_error', { event_category: 'Engagement', event_label: 'Email Submission Error' });
@@ -441,8 +422,7 @@
                         const newSavedPlays = [...savedPlays, newPlay];
                         setSavedPlays(newSavedPlays);
                         if (auth.currentUser) {
-                            db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playName).set(newPlay)
-                                .catch((error) => console.error('Error saving play:', error));
+                            db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playName).set(newPlay);
                         }
                         setPlayName('');
                     }
@@ -459,8 +439,7 @@
                     const newSavedPlays = savedPlays.filter((_, i) => i !== index);
                     setSavedPlays(newSavedPlays);
                     if (auth.currentUser) {
-                        db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playToDelete.name).delete()
-                            .catch((error) => console.error('Error deleting play:', error));
+                        db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playToDelete.name).delete();
                     }
                     resetPositions();
                 };
@@ -573,8 +552,7 @@
                         updatedPlays[currentPlayIndex] = { ...updatedPlays[currentPlayIndex], notes: currentNotes };
                         setSavedPlays(updatedPlays);
                         if (auth.currentUser) {
-                            db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(updatedPlays[currentPlayIndex].name).set(updatedPlays[currentPlayIndex])
-                                .catch((error) => console.error('Error saving notes:', error));
+                            db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(updatedPlays[currentPlayIndex].name).set(updatedPlays[currentPlayIndex]);
                         }
                     }
                     setShowNotesModal(false);
@@ -598,7 +576,6 @@
                 }, []);
 
                 if (error) {
-                    console.log('Rendering error state');
                     return h('div', { style: { textAlign: 'center', color: '#e53e3e' } }, [
                         h('h1', null, 'Error'),
                         h('p', null, error),
@@ -606,7 +583,6 @@
                     ]);
                 }
 
-                console.log('Rendering main UI');
                 return h('div', null, [
                     h('div', { style: { textAlign: 'center', marginBottom: '1.5rem' } }, [
                         h('h1', { style: { fontSize: '2rem', fontWeight: 'bold', color: '#1f2937' } }, [
@@ -846,12 +822,11 @@
                 ]);
             }
 
-            console.log('Rendering app');
             render(h(BaseballField), document.getElementById('root'));
         }
 
         function waitForPreact() {
-            const maxWaitTime = 10000; // 10 seconds
+            const maxWaitTime = 20000; // 20 seconds
             const startTime = Date.now();
 
             function checkPreact() {
@@ -867,7 +842,6 @@
                     typeof window.Preact.hooks !== 'undefined' &&
                     typeof window.Preact.hooks.useState !== 'undefined'
                 ) {
-                    console.log('Preact and Hooks globals ready');
                     window.PreactHooks = window.Preact.hooks; // Assign for compatibility
                     initApp();
                 } else if (Date.now() - startTime > maxWaitTime) {
@@ -881,7 +855,6 @@
             checkPreact();
         }
 
-        console.log('Starting Preact wait');
         waitForPreact();
     </script>
 </body>
