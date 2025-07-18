@@ -13,9 +13,9 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://fieldcommand.netlify.app">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; manifest-src 'self'; img-src 'self' data:; connect-src 'self' https://us20.list-manage.com https://firestore.googleapis.com https://www.google-analytics.com">    <title>FieldCommand: Baseball Defense Planner</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="preconnect" href="https://js.stripe.com">
     <link rel="preconnect" href="https://www.googletagmanager.com">
@@ -186,14 +186,13 @@
     try {
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/preact@10.19.3/dist/preact.umd.min.js';
-        script.integrity = 'sha256-0gY0+4gJ3zN7q3+8z7y0+8z7y0+8z7y0+8z7y0+8z7y0'; // Replace with actual SRI hash
+        script.integrity = 'sha256-kpf2laBslCtLG9EuJVW+6BWX+xduzueuheFxPiWLLuA=';
         script.crossOrigin = 'anonymous';
         script.async = true;
         script.onload = () => {
             console.log('Preact script loaded');
             console.log('window.Preact:', window.Preact);
             console.log('window.Preact.h:', window.Preact && window.Preact.h);
-            // Test Preact execution
             try {
                 window.Preact && window.Preact.h('div', null, 'Test');
                 console.log('Preact.h test successful');
@@ -212,7 +211,7 @@
     try {
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/preact@10.19.3/hooks/dist/hooks.umd.min.js';
-        script.integrity = 'sha256-0gY0+4gJ3zN7q3+8z7y0+8z7y0+8z7y0+8z7y0+8z7y0'; // Replace with actual SRI hash
+        script.integrity = 'sha256-w37hxUs/rqAEKxR4ukrDMG4j8qqzxxLk1P5ilWqXSZg=';
         script.crossOrigin = 'anonymous';
         script.async = true;
         script.onload = () => {
@@ -225,7 +224,6 @@
                 PreactHooks: window.PreactHooks,
                 useState: window.PreactHooks && window.PreactHooks.useState
             });
-            // Test Hooks execution
             try {
                 window.PreactHooks && window.PreactHooks.useState && window.PreactHooks.useState(0);
                 console.log('PreactHooks.useState test successful');
