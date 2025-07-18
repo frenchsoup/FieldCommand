@@ -12,9 +12,7 @@
         content="Plan baseball plays with ease! ⚾ Draw strategies and position players on your iPad or phone.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://fieldcommand.netlify.app">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com; script-src 'self' 'unsafe-inline' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; manifest-src 'self'; connect-src 'self' https://us20.list-manage.com https://firestore.googleapis.com https://www.google-analytics.com">
-    <title>FieldCommand: Baseball Defense Planner</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; manifest-src 'self'; img-src 'self' data:; connect-src 'self' https://us20.list-manage.com https://firestore.googleapis.com https://www.google-analytics.com">    <title>FieldCommand: Baseball Defense Planner</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -184,44 +182,63 @@
 
     <script src="https://js.stripe.com/v3/"></script>
     <script>
-        console.log('Attempting to load Preact script...');
-        try {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/preact@10.24.3/dist/preact.umd.min.js';
-            script.async = true;
-            script.onload = () => {
-                console.log('Preact script loaded');
-                console.log('window.Preact:', window.Preact);
-                console.log('window.Preact.h:', window.Preact && window.Preact.h);
-            };
-            script.onerror = () => console.error('Preact script failed to load');
-            document.head.appendChild(script);
-        } catch (e) {
-            console.error('Preact script setup error:', e);
-        }
-    </script>
-    <script>
-        console.log('Attempting to load Preact Hooks script...');
-        try {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/preact@10.24.3/hooks/dist/hooks.umd.min.js';
-            script.async = true;
-            script.onload = () => {
-                console.log('Preact Hooks script loaded');
-                console.log('window.PreactHooks:', window.PreactHooks);
-                console.log('window.PreactHooks.useState:', window.PreactHooks && window.PreactHooks.useState);
-                console.log('Post-load globals check:', {
-                    Preact: window.Preact,
-                    Preact_h: window.Preact && window.Preact.h,
-                    PreactHooks: window.PreactHooks,
-                    useState: window.PreactHooks && window.PreactHooks.useState
-                });
-            };
-            script.onerror = () => console.error('Preact Hooks script failed to load');
-            document.head.appendChild(script);
-        } catch (e) {
-            console.error('Preact Hooks script setup error:', e);
-        }
+    console.log('Attempting to load Preact script...');
+    try {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/preact@10.19.3/dist/preact.umd.min.js';
+        script.integrity = 'sha256-0gY0+4gJ3zN7q3+8z7y0+8z7y0+8z7y0+8z7y0+8z7y0'; // Replace with actual SRI hash
+        script.crossOrigin = 'anonymous';
+        script.async = true;
+        script.onload = () => {
+            console.log('Preact script loaded');
+            console.log('window.Preact:', window.Preact);
+            console.log('window.Preact.h:', window.Preact && window.Preact.h);
+            // Test Preact execution
+            try {
+                window.Preact && window.Preact.h('div', null, 'Test');
+                console.log('Preact.h test successful');
+            } catch (e) {
+                console.error('Preact.h test failed:', e);
+            }
+        };
+        script.onerror = () => console.error('Preact script failed to load');
+        document.head.appendChild(script);
+    } catch (e) {
+        console.error('Preact script setup error:', e);
+    }
+</script>
+<script>
+    console.log('Attempting to load Preact Hooks script...');
+    try {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/preact@10.19.3/hooks/dist/hooks.umd.min.js';
+        script.integrity = 'sha256-0gY0+4gJ3zN7q3+8z7y0+8z7y0+8z7y0+8z7y0+8z7y0'; // Replace with actual SRI hash
+        script.crossOrigin = 'anonymous';
+        script.async = true;
+        script.onload = () => {
+            console.log('Preact Hooks script loaded');
+            console.log('window.PreactHooks:', window.PreactHooks);
+            console.log('window.PreactHooks.useState:', window.PreactHooks && window.PreactHooks.useState);
+            console.log('Post-load globals check:', {
+                Preact: window.Preact,
+                Preact_h: window.Preact && window.Preact.h,
+                PreactHooks: window.PreactHooks,
+                useState: window.PreactHooks && window.PreactHooks.useState
+            });
+            // Test Hooks execution
+            try {
+                window.PreactHooks && window.PreactHooks.useState && window.PreactHooks.useState(0);
+                console.log('PreactHooks.useState test successful');
+            } catch (e) {
+                console.error('PreactHooks.useState test failed:', e);
+            }
+        };
+        script.onerror = () => console.error('Preact Hooks script failed to load');
+        document.head.appendChild(script);
+    } catch (e) {
+        console.error('Preact Hooks script setup error:', e);
+    }
+</script>
     </script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
