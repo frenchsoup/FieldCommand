@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="FieldCommand: Plan baseball defense strategies with ease. Position players, draw plays, and save your work.">
+    <meta name="description"
+        content="FieldCommand: Plan baseball defense strategies with ease. Position players, draw plays, and save your work.">
     <meta name="keywords" content="baseball, defense planner, coaching tool, FieldCommand">
     <meta property="og:title" content="⚾ FieldCommand: Baseball Defense Planner">
-    <meta property="og:description" content="Plan baseball plays with ease! ⚾ Draw strategies and position players on your iPad or phone.">
+    <meta property="og:description"
+        content="Plan baseball plays with ease! ⚾ Draw strategies and position players on your iPad or phone.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://fieldcommand.netlify.app">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com; script-src 'self' 'unsafe-inline' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; manifest-src 'self'; img-src 'self' data:; connect-src 'self' https://us20.list-manage.com https://firestore.googleapis.com https://www.google-analytics.com">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com; manifest-src 'self'; img-src 'self' data:; connect-src 'self' https://us20.list-manage.com https://firestore.googleapis.com https://www.google-analytics.com">
     <title>FieldCommand: Baseball Defense Planner</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -20,10 +24,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-KCRLDQSSEY"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-KCRLDQSSEY');
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-KCRLDQSSEY');
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -34,32 +38,42 @@
             -webkit-user-select: none;
             user-select: none;
         }
+
         .container {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             padding: 1rem;
         }
+
         .title-highlight {
             background: linear-gradient(90deg, #2c3e50 0%, #3498db 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
         .svg-shadow {
             filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.1));
         }
+
         .sidebar {
             background: #f8fafc;
             border-radius: 8px;
             padding: 1rem;
         }
-        .error-message, .success-message {
+
+        .error-message,
+        .success-message {
             font-size: 0.875rem;
             margin-top: -0.5rem;
             margin-bottom: 1rem;
             display: none;
         }
-        .error-message { color: #e53e3e; }
+
+        .error-message {
+            color: #e53e3e;
+        }
+
         .success-message {
             color: #2f855a;
             background: #f0fff4;
@@ -72,6 +86,7 @@
             width: 100%;
             text-align: center;
         }
+
         .modal {
             background: rgba(0, 0, 0, 0.5);
             position: fixed;
@@ -83,6 +98,7 @@
             align-items: center;
             justify-content: center;
         }
+
         .modal-content {
             background: white;
             border-radius: 8px;
@@ -90,6 +106,7 @@
             text-align: center;
             padding: 1.5rem;
         }
+
         .tooltip {
             visibility: hidden;
             background-color: #333;
@@ -106,35 +123,79 @@
             font-size: 14px;
             white-space: pre-wrap;
         }
-        .tooltip-container:hover .tooltip { visibility: visible; }
-        svg { background-color: rgba(0, 128, 0, 0.8); touch-action: none; }
-        .button-green { background-color: #16a34a; color: white; }
-        .button-gray { background-color: #4b5563; color: white; }
-        .button-blue { background-color: #2563eb; color: white; }
-        .button-red { background-color: #dc2626; color: white; }
-        .button-yellow { background-color: #d97706; color: white; }
+
+        .tooltip-container:hover .tooltip {
+            visibility: visible;
+        }
+
+        svg {
+            background-color: rgba(0, 128, 0, 0.8);
+            touch-action: none;
+        }
+
+        .button-green {
+            background-color: #16a34a;
+            color: white;
+        }
+
+        .button-gray {
+            background-color: #4b5563;
+            color: white;
+        }
+
+        .button-blue {
+            background-color: #2563eb;
+            color: white;
+        }
+
+        .button-red {
+            background-color: #dc2626;
+            color: white;
+        }
+
+        .button-yellow {
+            background-color: #d97706;
+            color: white;
+        }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
+
 <body>
-    <div id="loading" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: white;">
-        <div style="width: 3rem; height: 3rem; border: 4px solid #16a34a; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <div id="loading"
+        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: white;">
+        <div
+            style="width: 3rem; height: 3rem; border: 4px solid #16a34a; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;">
+        </div>
     </div>
     <div style="width: 100%; max-width: 1200px; margin: 0 auto; padding: 1rem;">
         <div id="root" role="application" aria-label="FieldCommand Baseball Defense Planner"></div>
     </div>
 
-    <script src="https://js.stripe.com/v3/" onload="console.log('Stripe script loaded')" onerror="console.error('Stripe script failed to load')"></script>
-<script src="https://unpkg.com/preact@10.19.2/dist/preact.umd.js"></script>
-<script>
-  window.PreactHooks = preactHooks;
-</script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js" onload="console.log('Firebase App script loaded')" onerror="console.error('Firebase App script failed to load')"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js" onload="console.log('Firebase Firestore script loaded')" onerror="console.error('Firebase Firestore script failed to load')"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js" onload="console.log('Firebase Auth script loaded')" onerror="console.error('Firebase Auth script failed to load')"></script>
+    <script src="https://js.stripe.com/v3/" onload="console.log('Stripe script loaded')"
+        onerror="console.error('Stripe script failed to load')"></script>
+    <script src="https://unpkg.com/preact@10.19.2/dist/preact.umd.js"></script>
+    <script>
+        window.PreactHooks = preactHooks;
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"
+        onload="console.log('Firebase App script loaded')"
+        onerror="console.error('Firebase App script failed to load')"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"
+        onload="console.log('Firebase Firestore script loaded')"
+        onerror="console.error('Firebase Firestore script failed to load')"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"
+        onload="console.log('Firebase Auth script loaded')"
+        onerror="console.error('Firebase Auth script failed to load')"></script>
 
     <script type="text/javascript">
         console.log('Script started');
@@ -143,7 +204,7 @@
             console.log('initApp called');
             console.log('Preact:', window.Preact);
             console.log('PreactHooks:', window.PreactHooks);
-            if (typeof window.Preact === 'undefined' || typeof window.Preact.h === 'undefined' || 
+            if (typeof window.Preact === 'undefined' || typeof window.Preact.h === 'undefined' ||
                 typeof window.PreactHooks === 'undefined' || typeof window.PreactHooks.useState === 'undefined') {
                 console.error('Preact or Hooks incomplete');
                 document.getElementById('loading').innerHTML = '<div style="text-align: center; color: #e53e3e;">Failed to load app. Please check your connection and refresh.</div>';
@@ -548,7 +609,7 @@
                             'Welcome to ',
                             h('span', { className: 'title-highlight' }, 'FieldCommand')
                         ]),
-                        h('p', { style: { fontSize: '1.125rem', color: '#4b5563', marginTop: '0.5rem' } }, 
+                        h('p', { style: { fontSize: '1.125rem', color: '#4b5563', marginTop: '0.5rem' } },
                             'The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies—all in one tool.'
                         )
                     ]),
@@ -566,7 +627,7 @@
                             }),
                             h('p', { id: 'email-error', className: 'error-message' }, 'Please enter a valid email address (e.g., user@domain.com).'),
                             h('p', { id: 'email-success', className: `success-message ${showSuccess ? 'block' : ''}` }, 'Thanks for signing up! Starting now...'),
-                            h('div', { style: { position: 'absolute', left: '-5000px' }, 'aria-hidden': true }, 
+                            h('div', { style: { position: 'absolute', left: '-5000px' }, 'aria-hidden': true },
                                 h('input', { type: 'text', name: 'b_c3a7558bf8ddc22b2955671f5_1130a67a8c', tabIndex: -1, defaultValue: '' })
                             ),
                             h('input', {
@@ -648,7 +709,7 @@
                                 onTouchEnd: handleMouseUp
                             }, [
                                 h('defs', null, [
-                                    h('marker', { id: 'arrow', markerWidth: 10, markerHeight: 10, refX: 8, refY: 3, orient: 'auto' }, 
+                                    h('marker', { id: 'arrow', markerWidth: 10, markerHeight: 10, refX: 8, refY: 3, orient: 'auto' },
                                         h('path', { d: 'M0,0 L0,6 L9,3 Z', fill: 'black' })
                                     )
                                 ]),
@@ -688,7 +749,7 @@
                                         markerEnd: 'url(#arrow)'
                                     })
                                 ]),
-                                Object.entries(positions).map(([id, { x, y, label }]) => 
+                                Object.entries(positions).map(([id, { x, y, label }]) =>
                                     h(DraggableMarker, {
                                         key: id,
                                         id: id,
@@ -704,7 +765,7 @@
                         h('div', { className: 'sidebar', style: { flex: '1 1 25%' } }, [
                             h('h2', { style: { fontSize: '1.125rem', fontWeight: '600', textAlign: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' } }, 'Saved Plays'),
                             h('div', { style: { flex: 1, overflowY: 'auto' } }, [
-                                h('div', { className: 'grid', style: { gap: '0.5rem' } }, 
+                                h('div', { className: 'grid', style: { gap: '0.5rem' } },
                                     savedPlays.map((play, index) => h('div', { key: index, className: 'tooltip-container', style: { display: 'flex', gap: '0.5rem', alignItems: 'center' } }, [
                                         h('button', {
                                             onClick: () => loadPlay(play),
@@ -797,7 +858,7 @@
                     PreactHooks: window.PreactHooks,
                     useState: window.PreactHooks && window.PreactHooks.useState
                 });
-                if (typeof window.Preact !== 'undefined' && typeof window.Preact.h !== 'undefined' && 
+                if (typeof window.Preact !== 'undefined' && typeof window.Preact.h !== 'undefined' &&
                     typeof window.PreactHooks !== 'undefined' && typeof window.PreactHooks.useState !== 'undefined') {
                     console.log('Preact globals ready');
                     initApp();
@@ -816,4 +877,5 @@
         waitForPreact();
     </script>
 </body>
+
 </html>
