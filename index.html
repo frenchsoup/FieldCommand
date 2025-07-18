@@ -11,9 +11,9 @@
     <meta property="og:url" content="https://fieldcommand.netlify.app">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com; script-src 'self' 'unsafe-inline' https://js.stripe.com https://unpkg.com https://www.gstatic.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; manifest-src 'self'; img-src 'self' data:; connect-src 'self' https://us20.list-manage.com https://firestore.googleapis.com https://www.google-analytics.com">
     <title>FieldCommand: Baseball Defense Planner</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="https://fieldcommand.netlify.app/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="https://fieldcommand.netlify.app/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="https://fieldcommand.netlify.app/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="preconnect" href="https://js.stripe.com">
     <link rel="preconnect" href="https://www.googletagmanager.com">
@@ -128,8 +128,10 @@
     </div>
 
     <script src="https://js.stripe.com/v3/" onload="console.log('Stripe script loaded')" onerror="console.error('Stripe script failed to load')"></script>
-    <script src="https://unpkg.com/preact@10.22.1/dist/preact.umd.js" onload="console.log('Preact script loaded'); console.log('window.Preact:', window.Preact); console.log('window.Preact.h:', window.Preact && window.Preact.h);" onerror="console.error('Preact script failed to load')"></script>
-    <script src="https://unpkg.com/preact@10.22.1/hooks/dist/hooks.umd.js" onload="console.log('Preact Hooks script loaded'); console.log('window.PreactHooks:', window.PreactHooks); console.log('window.PreactHooks.useState:', window.PreactHooks && window.PreactHooks.useState); console.log('Post-load globals check:', { Preact: window.Preact, Preact_h: window.Preact && window.Preact.h, PreactHooks: window.PreactHooks, useState: window.PreactHooks && window.PreactHooks.useState });" onerror="console.error('Preact Hooks script failed to load')"></script>
+<script src="https://unpkg.com/preact@10.19.2/dist/preact.umd.js"></script>
+<script>
+  window.PreactHooks = preactHooks;
+</script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js" onload="console.log('Firebase App script loaded')" onerror="console.error('Firebase App script failed to load')"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js" onload="console.log('Firebase Firestore script loaded')" onerror="console.error('Firebase Firestore script failed to load')"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js" onload="console.log('Firebase Auth script loaded')" onerror="console.error('Firebase Auth script failed to load')"></script>
