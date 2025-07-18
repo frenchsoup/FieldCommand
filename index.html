@@ -183,10 +183,10 @@
 
     <script src="https://js.stripe.com/v3/" onload="console.log('Stripe script loaded')"
         onerror="console.error('Stripe script failed to load')"></script>
-    <script src="https://unpkg.com/preact@10.19.2/dist/preact.umd.js"></script>
-    <script>
-        window.PreactHooks = preactHooks;
-    </script>
+    <script src="https://unpkg.com/preact@10.19.2/dist/preact.umd.js" onload="console.log('Preact core loaded')"
+        onerror="console.error('Preact core failed to load')"></script>
+    <script src="https://unpkg.com/preact@10.19.2/hooks/dist/hooks.umd.js" onload="console.log('Preact Hooks loaded')"
+        onerror="console.error('Preact Hooks failed to load')"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"
         onload="console.log('Firebase App script loaded')"
         onerror="console.error('Firebase App script failed to load')"></script>
@@ -204,8 +204,12 @@
             console.log('initApp called');
             console.log('Preact:', window.Preact);
             console.log('PreactHooks:', window.PreactHooks);
-            if (typeof window.Preact === 'undefined' || typeof window.Preact.h === 'undefined' ||
-                typeof window.PreactHooks === 'undefined' || typeof window.PreactHooks.useState === 'undefined') {
+            if (
+                typeof window.Preact === 'undefined' ||
+                typeof window.Preact.h === 'undefined' ||
+                typeof window.PreactHooks === 'undefined' ||
+                typeof window.PreactHooks.useState === 'undefined'
+            ) {
                 console.error('Preact or Hooks incomplete');
                 document.getElementById('loading').innerHTML = '<div style="text-align: center; color: #e53e3e;">Failed to load app. Please check your connection and refresh.</div>';
                 return;
@@ -846,7 +850,6 @@
             render(h(BaseballField), document.getElementById('root'));
         }
 
-        // Polling with timeout
         function waitForPreact() {
             const maxWaitTime = 10000; // 10 seconds
             const startTime = Date.now();
@@ -855,12 +858,17 @@
                 console.log('Checking Preact globals:', {
                     Preact: window.Preact,
                     Preact_h: window.Preact && window.Preact.h,
-                    PreactHooks: window.PreactHooks,
-                    useState: window.PreactHooks && window.PreactHooks.useState
+                    PreactHooks: window.Preact && window.Preact.hooks,
+                    useState: window.Preact && window.Preact.hooks && window.Preact.hooks.useState
                 });
-                if (typeof window.Preact !== 'undefined' && typeof window.Preact.h !== 'undefined' &&
-                    typeof window.PreactHooks !== 'undefined' && typeof window.PreactHooks.useState !== 'undefined') {
-                    console.log('Preact globals ready');
+                if (
+                    typeof window.Preact !== 'undefined' &&
+                    typeof window.Preact.h !== 'undefined' &&
+                    typeof window.Preact.hooks !== 'undefined' &&
+                    typeof window.Preact.hooks.useState !== 'undefined'
+                ) {
+                    console.log('Preact and Hooks globals ready');
+                    window.PreactHooks = window.Preact.hooks; // Assign for compatibility
                     initApp();
                 } else if (Date.now() - startTime > maxWaitTime) {
                     console.error('Preact globals timeout');

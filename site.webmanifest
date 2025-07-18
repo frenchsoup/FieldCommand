@@ -1,6 +1,12 @@
 {
-  "name": "FieldCommand",
+  "name": "FieldCommand: Baseball Defense Planner",
   "short_name": "FieldCommand",
+  "description": "Plan baseball defense strategies with ease. Position players, draw plays, and save your work.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f4f8",
+  "theme_color": "#2c3e50",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/apple-touch-icon.png",
@@ -17,8 +23,5 @@
       "sizes": "16x16",
       "type": "image/png"
     }
-  ],
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
-  "display": "standalone"
+  ]
 }
