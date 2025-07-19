@@ -16,4 +16,4 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "connect-src 'self' https://us20.list-manage.com https://firestore.googleapis.com https://www.google-analytics.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com"
+    Content-Security-Policy = "connect-src 'self' https://github.us20.list-manage.com https://us20.list-manage.com https://firestore.googleapis.com https://www.google-analytics.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com"
