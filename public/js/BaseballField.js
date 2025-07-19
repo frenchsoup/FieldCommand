@@ -24,8 +24,8 @@ const initialPositions = {
 };
 
 const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
-    const { useState, useEffect } = window.PreactHooks;
-    const { h } = window.Preact;
+    const { useState, useEffect } = window.preactHooks; // Fixed to lowercase
+    const { h } = window.preact;
     const { DraggableMarker } = window;
 
     const [positions, setPositions] = useState(initialPositions);
@@ -49,7 +49,6 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // Initialize auth without immediate play loading
     useEffect(() => {
         if (!app || !db || !auth) {
             const errMsg = "Firebase not initialized.";
@@ -57,25 +56,27 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             setError(errMsg);
             console.error(errMsg);
             setIsLoading(false);
-            document.getElementById('loading').style.display = 'none';
+            const loadingDiv = document.getElementById('loading');
+            if (loadingDiv) loadingDiv.style.display = 'none';
             return;
         }
         auth.signInAnonymously().then((userCredential) => {
             setUserId(userCredential.user.uid);
             console.log('User ID set:', userCredential.user.uid);
             setIsLoading(false);
-            document.getElementById('loading').style.display = 'none';
+            const loadingDiv = document.getElementById('loading');
+            if (loadingDiv) loadingDiv.style.display = 'none';
         }).catch((err) => {
             const errMsg = "Authentication failed.";
             setLocalError(errMsg);
             setError(errMsg);
             console.error('Auth error:', err.message);
             setIsLoading(false);
-            document.getElementById('loading').style.display = 'none';
+            const loadingDiv = document.getElementById('loading');
+            if (loadingDiv) loadingDiv.style.display = 'none';
         });
     }, [app, db, auth, setError]);
 
-    // Load plays only after email unlock or premium status
     useEffect(() => {
         if (!userId || showEmailGate) {
             return;
@@ -124,11 +125,14 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         formData.append('EMAIL', email);
         formData.append('b_c3a7558bf8ddc22b2955671f5_1130a67a8c', '');
         try {
-            await fetch('https://us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
+            const response = await fetch('https://us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
                 method: 'POST',
                 body: formData,
                 mode: 'no-cors'
             });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
             setShowSuccess(true);
             setTimeout(() => {
                 setShowSuccess(false);
@@ -142,8 +146,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         } catch (err) {
             errorMessage.textContent = "Something went wrong. Please try again.";
             errorMessage.style.display = 'block';
-            setLocalError("Email submission failed.");
-            setError("Email submission failed.");
+            setLocalError("Email submission failed: " + err.message);
+            setError("Email submission failed: " + err.message);
             console.error('Email submission error:', err);
             gtag('event', 'unlock_app_error', { event_category: 'Engagement', event_label: 'Email Submission Error' });
         }
