@@ -28,10 +28,15 @@ async function initializeFirebase() {
 
 async function loadPreact() {
     try {
-        const preactModule = await import('https://unpkg.com/preact@10.23.2/dist/preact.umd.js');
+        // Load core Preact module first
+        const preactModule = await import('https://esm.sh/preact@10.23.2');
         window.Preact = preactModule;
-        window.preact = preactModule; // Set lowercase for hooks compatibility
-        const hooksModule = await import('https://unpkg.com/preact@10.23.2/hooks/dist/hooks.umd.js');
+        window.preact = preactModule; // Ensure lowercase for hooks compatibility
+        // Load hooks module after core Preact
+        const hooksModule = await import('https://esm.sh/preact@10.23.2/hooks');
+        if (!hooksModule) {
+            throw new Error('Preact hooks module failed to load');
+        }
         window.PreactHooks = hooksModule;
         await initApp();
     } catch (error) {
