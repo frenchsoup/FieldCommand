@@ -43,7 +43,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     const [isPremium, setIsPremium] = useState(localStorage.getItem('isPremium') === 'true');
     const [showEmailGate, setShowEmailGate] = useState(localStorage.getItem('fieldCommandUnlocked') !== 'true' && !isPremium);
     const [showSuccess, setShowSuccess] = useState(false);
-    const [error, setLocalError] = useState(null); // Added local error state
+    const [error, setLocalError] = useState(null);
+    const [isLoading, setIsLoading] = useState(true); // Added loading state
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -51,6 +52,7 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         if (!app || !db || !auth) {
             setLocalError("Firebase not initialized. Check console for details.");
             setError("Firebase not initialized. Check console for details.");
+            setIsLoading(false);
             return;
         }
         auth.signInAnonymously().then((userCredential) => {
@@ -59,14 +61,19 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                 const plays = [];
                 querySnapshot.forEach((doc) => plays.push(doc.data()));
                 setSavedPlays(plays);
+                setIsLoading(false);
                 document.getElementById('loading').style.display = 'none';
             }, (err) => {
                 setLocalError("Failed to load plays: " + err.message);
                 setError("Failed to load plays: " + err.message);
+                setIsLoading(false);
+                document.getElementById('loading').style.display = 'none';
             });
         }).catch((err) => {
             setLocalError("Authentication failed: " + err.message);
             setError("Authentication failed: " + err.message);
+            setIsLoading(false);
+            document.getElementById('loading').style.display = 'none';
         });
     }, [app, db, auth, setError]);
 
@@ -110,6 +117,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             }, 2000);
             gtag('event', 'unlock_app_success', { event_category: 'Engagement', event_label: 'Email Submission Success', value: 1 });
             localStorage.setItem('fieldCommandUnlocked', 'true');
+            setLocalError(null);
+            setError(null);
         } catch (err) {
             errorMessage.textContent = "Something went wrong. Please try again.";
             errorMessage.style.display = 'block';
@@ -133,7 +142,7 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                 db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playName).set(newPlay);
             }
             setPlayName('');
-            setLocalError(null); // Clear error on success
+            setLocalError(null);
             setError(null);
         }
     };
@@ -299,11 +308,15 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         }
     }, []);
 
+    if (isLoading) {
+        return null; // Let index.html's loading spinner show
+    }
+
     if (error) {
         return h('div', { style: { textAlign: 'center', color: '#e53e3e' } }, [
             h('h1', null, 'Error'),
             h('p', null, error),
-            h('p', null, 'Check the console (F12) for more details.')
+            h('p', null, 'Check the console (F12) for more details or contact support at support@fieldcommand.netlify.app.')
         ]);
     }
 
