@@ -4,13 +4,13 @@ async function initializeFirebase() {
         await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js');
         await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js');
         const firebaseConfig = {
-            apiKey: "AIzaSyCrSN8xc3KTGrc2gUzcqerL6SSYrF3LXZM",
-            authDomain: "fieldcommand.firebaseapp.com",
-            projectId: "fieldcommand",
-            storageBucket: "fieldcommand.firebasestorage.app",
-            messagingSenderId: "944064034218",
-            appId: "1:944064034218:web:bb6744acdd0d66e9ba27d3",
-            measurementId: "G-C3TQ7DWTX8"
+            apiKey: "[FIREBASE_API_KEY]",
+            authDomain: "[FIREBASE_AUTH_DOMAIN]",
+            projectId: "[FIREBASE_PROJECT_ID]",
+            storageBucket: "[FIREBASE_STORAGE_BUCKET]",
+            messagingSenderId: "[FIREBASE_MESSAGING_SENDER_ID]",
+            appId: "[FIREBASE_APP_ID]",
+            measurementId: "[FIREBASE_MEASUREMENT_ID]"
         };
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -28,11 +28,9 @@ async function initializeFirebase() {
 
 async function loadPreact() {
     try {
-        // Load core Preact module first
         const preactModule = await import('https://esm.sh/preact@10.23.2');
         window.Preact = preactModule;
-        window.preact = preactModule; // Ensure lowercase for hooks compatibility
-        // Load hooks module after core Preact
+        window.preact = preactModule; // Ensure lowercase for compatibility
         const hooksModule = await import('https://esm.sh/preact@10.23.2/hooks');
         if (!hooksModule) {
             throw new Error('Preact hooks module failed to load');
@@ -56,15 +54,7 @@ async function initApp() {
     if (!firebaseInstance) return;
     const { app, db, auth } = firebaseInstance;
 
-    const stripeKey = window.ENV?.STRIPE_PUBLIC_KEY || 'pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5';
-    if (!stripeKey || stripeKey === '[STRIPE_PUBLIC_KEY]') {
-        console.error('Stripe public key is missing or not configured in Netlify environment variables.');
-        document.getElementById('loading').innerHTML = `
-            <div style="text-align: center; color: #e53e3e;">
-                Payment system unavailable. Please try again later or contact support.
-            </div>`;
-        return;
-    }
+    const stripeKey = "[STRIPE_PUBLIC_KEY]" || 'pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5';
     const stripePromise = import('https://js.stripe.com/v3/').then(() => {
         return window.Stripe(stripeKey);
     }).catch(error => {

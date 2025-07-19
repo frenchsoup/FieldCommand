@@ -8,9 +8,6 @@
     <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
     <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <script src="https://unpkg.com/preact@10.15.1/dist/preact.module.js" type="module"></script>
-    <script src="https://unpkg.com/preact/hooks/dist/hooks.module.js" type="module" crossOrigin="anonymous"></script>
-    <script src="https://js.stripe.com/v3/" crossOrigin="anonymous"></script>
     <script src="https://www.googletagmanager.com/gtag/js?id=[FIREBASE_MEASUREMENT_ID]" async></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -22,48 +19,6 @@
 <body>
     <div id="root"></div>
     <div id="loading" style="display: none; text-align: center; padding: 1rem;">Loading...</div>
-    <script type="module">
-        import { h, render } from 'https://unpkg.com/preact@10.15.1/dist/preact.module.js';
-        import { useState, useEffect } from 'https://unpkg.com/preact/hooks/dist/hooks.module.js';
-        import { BaseballField } from './js/BaseballField.js';
-
-        const App = () => {
-            const [app, setApp] = useState(null);
-            const [db, setDb] = useState(null);
-            const [auth, setAuth] = useState(null);
-            const [stripePromise, setStripePromise] = useState(null);
-            const [error, setError] = useState(null);
-
-            useEffect(() => {
-                const firebaseConfig = {
-                    apiKey: "[FIREBASE_API_KEY]",
-                    authDomain: "[FIREBASE_AUTH_DOMAIN]",
-                    projectId: "[FIREBASE_PROJECT_ID]",
-                    storageBucket: "[FIREBASE_STORAGE_BUCKET]",
-                    messagingSenderId: "[FIREBASE_MESSAGING_SENDER_ID]",
-                    appId: "[FIREBASE_APP_ID]",
-                    measurementId: "[FIREBASE_MEASUREMENT_ID]"
-                };
-                const { initializeApp } = window.firebase;
-                const { getFirestore, connectFirestoreEmulator } = window.firebase.firestore;
-                const { getAuth } = window.firebase.auth;
-                const app = initializeApp(firebaseConfig);
-                const db = getFirestore(app);
-                const auth = getAuth(app);
-                if (location.hostname === "localhost") {
-                    connectFirestoreEmulator(db, 'localhost', 8080);
-                }
-                const stripePromise = window.Stripe('[STRIPE_PUBLIC_KEY]');
-                setApp(app);
-                setDb(db);
-                setAuth(auth);
-                setStripePromise(stripePromise);
-            }, []);
-
-            return h(BaseballField, { app, db, auth, stripePromise, setError });
-        };
-
-        render(h(App), document.getElementById('root'));
-    </script>
+    <script type="module" src="js/init.js"></script>
 </body>
 </html>
