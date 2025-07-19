@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FieldCommand - Baseball Defense Planner</title>
     <link rel="stylesheet" href="/styles.css">
-    <!-- Use existing PNG favicons -->
     <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
     <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <script src="https://unpkg.com/preact@10.15.1/dist/preact.umd.js"></script>
-    <script src="https://unpkg.com/preact/hooks/dist/hooks.umd.js" crossOrigin="anonymous"></script>
+    <script src="https://unpkg.com/preact@10.15.1/dist/preact.module.js" type="module"></script>
+    <script src="https://unpkg.com/preact/hooks/dist/hooks.module.js" type="module" crossOrigin="anonymous"></script>
     <script src="https://js.stripe.com/v3/" crossOrigin="anonymous"></script>
     <script src="https://www.googletagmanager.com/gtag/js?id=[FIREBASE_MEASUREMENT_ID]" async></script>
     <script>
@@ -23,10 +22,9 @@
 <body>
     <div id="root"></div>
     <div id="loading" style="display: none; text-align: center; padding: 1rem;">Loading...</div>
-    <script type="module" src="js/init.js"></script>
     <script type="module">
-        const { h, render } = window.preact;
-        const { useState, useEffect } = window.preactHooks;
+        import { h, render } from 'https://unpkg.com/preact@10.15.1/dist/preact.module.js';
+        import { useState, useEffect } from 'https://unpkg.com/preact/hooks/dist/hooks.module.js';
         import { BaseballField } from './js/BaseballField.js';
 
         const App = () => {
