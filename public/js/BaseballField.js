@@ -1,5 +1,5 @@
-import { h, Component } from '/web_modules/preact.js';
-import { useState, useEffect } from '/web_modules/preact/hooks.js';
+const { h, Component } = window.preact;
+const { useState, useEffect } = window.preactHooks;
 
 class DraggableMarker extends Component {
   render() {
@@ -81,9 +81,9 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         required: true,
         style: { padding: '5px', marginRight: '10px' }
       }),
-      h('button', { type: 'submit', style: { padding: '5px 10px' } }, 'Subscribe')
+      h('button', { type: 'submit', style: { padding: '5px 10px' }, className: 'button-green' }, 'Subscribe')
     ),
-    error && h('div', { style: { color: '#e53e3e', marginTop: '10px' } }, error)
+    error && h('div', { style: { color: '#e53e3e', marginTop: '10px' }, className: 'error-message' }, error)
   );
 };
 
