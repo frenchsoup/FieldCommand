@@ -1,21 +1,19 @@
 async function initializeFirebase() {
     try {
         await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
-        await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js');
         await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js');
         const firebaseConfig = {
-            apiKey: "[FIREBASE_API_KEY]",
-            authDomain: "[FIREBASE_AUTH_DOMAIN]",
-            projectId: "[FIREBASE_PROJECT_ID]",
-            storageBucket: "[FIREBASE_STORAGE_BUCKET]",
-            messagingSenderId: "[FIREBASE_MESSAGING_SENDER_ID]",
-            appId: "[FIREBASE_APP_ID]",
-            measurementId: "[FIREBASE_MEASUREMENT_ID]"
+            apiKey: "${FIREBASE_API_KEY}",
+            authDomain: "${FIREBASE_AUTH_DOMAIN}",
+            projectId: "${FIREBASE_PROJECT_ID}",
+            storageBucket: "${FIREBASE_STORAGE_BUCKET}",
+            messagingSenderId: "${FIREBASE_MESSAGING_SENDER_ID}",
+            appId: "${FIREBASE_APP_ID}",
+            measurementId: "${FIREBASE_MEASUREMENT_ID}"
         };
         const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
         const auth = firebase.auth();
-        return { app, db, auth };
+        return { app, auth };
     } catch (error) {
         console.error('Firebase initialization failed:', error);
         document.getElementById('loading').innerHTML = `
@@ -52,9 +50,9 @@ async function initApp() {
     window.DraggableMarker = DraggableMarker;
     const firebaseInstance = await initializeFirebase();
     if (!firebaseInstance) return;
-    const { app, db, auth } = firebaseInstance;
+    const { app, auth } = firebaseInstance;
 
-    const stripeKey = "[STRIPE_PUBLIC_KEY]" || 'pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5';
+    const stripeKey = "${STRIPE_PUBLIC_KEY}" || 'pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5';
     const stripePromise = import('https://js.stripe.com/v3/').then(() => {
         return window.Stripe(stripeKey);
     }).catch(error => {
@@ -71,7 +69,7 @@ async function initApp() {
 
     function App() {
         const [error, setError] = useState(null);
-        return h(BaseballField, { app, db, auth, stripePromise, setError });
+        return h(BaseballField, { app, auth, stripePromise, setError });
     }
 
     render(h(App), document.getElementById('root'));

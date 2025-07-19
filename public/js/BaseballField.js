@@ -1,6 +1,12 @@
 const { h, Component } = window.preact;
 const { useState, useEffect } = window.preactHooks;
 
+// Load saved position from session storage or default
+const loadPosition = () => {
+  const saved = sessionStorage.getItem('markerPosition');
+  return saved ? JSON.parse(saved) : { x: 50, y: 50 };
+};
+
 class DraggableMarker extends Component {
   render() {
     const { x, y, onDrag } = this.props;
@@ -20,14 +26,37 @@ class DraggableMarker extends Component {
   }
 }
 
-const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
-  const [markerPosition, setMarkerPosition] = useState({ x: 50, y: 50 });
-  const [email, setEmail] = useState('');
+const BaseballField = ({ app, auth, stripePromise, setError }) => {
+  const [markerPosition, setMarkerPosition] = useState(loadPosition());
   const [error, setLocalError] = useState(null);
+  const [isPremium, setIsPremium] = useState(false); // Placeholder for premium check
 
   useEffect(() => {
     setError(error); // Sync local error with prop
   }, [error, setError]);
+
+  useEffect(() => {
+    // Save position to session storage on change
+    sessionStorage.setItem('markerPosition', JSON.stringify(markerPosition));
+
+    // Placeholder for premium check (to be implemented)
+    const checkPremiumStatus = async () => {
+      try {
+        // Example: Check user premium status via auth
+        const user = auth.currentUser;
+        if (user) {
+          // In a real impl, query a Firebase collection or custom claims
+          // For now, simulate with a mock check
+          const premium = await new Promise(resolve => setTimeout(() => resolve(true), 1000)); // Mock delay
+          setIsPremium(premium);
+        }
+      } catch (err) {
+        console.error('Premium check failed:', err);
+        setLocalError('Failed to check premium status');
+      }
+    };
+    checkPremiumStatus();
+  }, [markerPosition, auth, setError]);
 
   const handleDrag = (e) => {
     const startX = e.clientX;
@@ -49,40 +78,9 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     document.addEventListener('mouseup', onMouseUp);
   };
 
-  const handleEmailSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const response = await fetch('https://github.us20.list-manage.com/subscribe?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `EMAIL=${encodeURIComponent(email)}&b_c3a7558bf8ddc22b2955671f5_1130a67a8c=`
-      });
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Network response was not ok: ${response.status} - ${errorText}`);
-      }
-      console.log('Subscription successful');
-      setEmail('');
-      setLocalError(null);
-    } catch (error) {
-      console.error('Email submission error:', error);
-      setLocalError(error.message); // Line 151
-    }
-  };
-
   return h('div', { style: { position: 'relative', width: '800px', height: '400px', border: '1px solid black' } },
     h(DraggableMarker, { x: markerPosition.x, y: markerPosition.y, onDrag: handleDrag }),
-    h('form', { onSubmit: handleEmailSubmit, style: { marginTop: '20px' } },
-      h('input', {
-        type: 'email',
-        value: email,
-        onInput: (e) => setEmail(e.target.value),
-        placeholder: 'Enter your email',
-        required: true,
-        style: { padding: '5px', marginRight: '10px' }
-      }),
-      h('button', { type: 'submit', style: { padding: '5px 10px' }, className: 'button-green' }, 'Subscribe')
-    ),
+    isPremium && h('div', { style: { color: '#10b981', marginTop: '10px' }, className: 'success-message' }, 'Premium User'),
     error && h('div', { style: { color: '#e53e3e', marginTop: '10px' }, className: 'error-message' }, error)
   );
 };
