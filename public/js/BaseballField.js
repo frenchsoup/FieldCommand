@@ -44,15 +44,18 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     const [showEmailGate, setShowEmailGate] = useState(localStorage.getItem('fieldCommandUnlocked') !== 'true' && !isPremium);
     const [showSuccess, setShowSuccess] = useState(false);
     const [error, setLocalError] = useState(null);
-    const [isLoading, setIsLoading] = useState(true); // Added loading state
+    const [isLoading, setIsLoading] = useState(true);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     useEffect(() => {
         if (!app || !db || !auth) {
-            setLocalError("Firebase not initialized. Check console for details.");
-            setError("Firebase not initialized. Check console for details.");
+            const errMsg = "Firebase not initialized. Check console for details.";
+            setLocalError(errMsg);
+            setError(errMsg);
+            console.error(errMsg);
             setIsLoading(false);
+            document.getElementById('loading').style.display = 'none';
             return;
         }
         auth.signInAnonymously().then((userCredential) => {
@@ -64,14 +67,18 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                 setIsLoading(false);
                 document.getElementById('loading').style.display = 'none';
             }, (err) => {
-                setLocalError("Failed to load plays: " + err.message);
-                setError("Failed to load plays: " + err.message);
+                const errMsg = "Failed to load plays: " + err.message;
+                setLocalError(errMsg);
+                setError(errMsg);
+                console.error(errMsg);
                 setIsLoading(false);
                 document.getElementById('loading').style.display = 'none';
             });
         }).catch((err) => {
-            setLocalError("Authentication failed: " + err.message);
-            setError("Authentication failed: " + err.message);
+            const errMsg = "Authentication failed: " + err.message;
+            setLocalError(errMsg);
+            setError(errMsg);
+            console.error(errMsg);
             setIsLoading(false);
             document.getElementById('loading').style.display = 'none';
         });
@@ -88,10 +95,12 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     const triggerPremiumModal = () => {
         gtag('event', 'premium_modal_view', { event_category: 'Premium', event_label: 'Premium Modal Displayed' });
         setShowPremiumModal(true);
+        console.log('Premium modal triggered');
     };
 
     const handleEmailSubmit = async (e) => {
         e.preventDefault();
+        console.log('Email submit clicked');
         const email = e.target.querySelector('#unlock-email').value;
         const errorMessage = e.target.querySelector('#email-error');
         const successMessage = e.target.querySelector('#email-success');
@@ -113,17 +122,19 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             setShowSuccess(true);
             setTimeout(() => {
                 setShowSuccess(false);
-                setShowEmailGate(false);
+                setShowEmailGate(false); // Ensure gate closes
             }, 2000);
             gtag('event', 'unlock_app_success', { event_category: 'Engagement', event_label: 'Email Submission Success', value: 1 });
             localStorage.setItem('fieldCommandUnlocked', 'true');
             setLocalError(null);
             setError(null);
+            console.log('Email submission successful');
         } catch (err) {
             errorMessage.textContent = "Something went wrong. Please try again.";
             errorMessage.style.display = 'block';
             setLocalError("Email submission failed: " + err.message);
             setError("Email submission failed: " + err.message);
+            console.error('Email submission error:', err);
             gtag('event', 'unlock_app_error', { event_category: 'Engagement', event_label: 'Email Submission Error' });
         }
     };
@@ -133,7 +144,11 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     }, 16);
 
     const savePlay = () => {
-        if (!isPremium) return triggerPremiumModal();
+        if (!isPremium) {
+            triggerPremiumModal();
+            return;
+        }
+        console.log('Save play clicked');
         if (playName) {
             const newPlay = { name: playName, positions: { ...positions }, lines: [...lines], notes: '' };
             const newSavedPlays = [...savedPlays, newPlay];
@@ -180,7 +195,11 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     };
 
     const toggleSolidMode = () => {
-        if (!isPremium) return triggerPremiumModal();
+        if (!isPremium) {
+            triggerPremiumModal();
+            return;
+        }
+        console.log('Toggle solid mode clicked');
         setIsSolidMode(prev => {
             const newState = !prev;
             if (newState) setIsDottedMode(false);
@@ -189,7 +208,11 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     };
 
     const toggleDottedMode = () => {
-        if (!isPremium) return triggerPremiumModal();
+        if (!isPremium) {
+            triggerPremiumModal();
+            return;
+        }
+        console.log('Toggle dotted mode clicked');
         setIsDottedMode(prev => {
             const newState = !prev;
             if (newState) setIsSolidMode(false);
@@ -271,7 +294,10 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     };
 
     const openNotesModal = (index) => {
-        if (!isPremium) return triggerPremiumModal();
+        if (!isPremium) {
+            triggerPremiumModal();
+            return;
+        }
         setCurrentPlayIndex(index);
         setCurrentNotes(savedPlays[index].notes || '');
         setShowNotesModal(true);
@@ -309,14 +335,14 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     }, []);
 
     if (isLoading) {
-        return null; // Let index.html's loading spinner show
+        return null;
     }
 
     if (error) {
-        return h('div', { style: { textAlign: 'center', color: '#e53e3e' } }, [
-            h('h1', null, 'Error'),
-            h('p', null, error),
-            h('p', null, 'Check the console (F12) for more details or contact support at support@fieldcommand.netlify.app.')
+        return h('div', { style: { textAlign: 'center', color: '#dc2626', background: '#fef2f2', padding: '1rem', borderRadius: '8px' } }, [
+            h('h1', { style: { fontSize: '1.5rem', fontWeight: 'bold' } }, 'Error'),
+            h('p', { style: { fontSize: '1rem', margin: '0.5rem 0' } }, error),
+            h('p', { style: { fontSize: '0.875rem', color: '#6b7280' } }, 'Check the console (F12) for more details or contact support at support@fieldcommand.netlify.app.')
         ]);
     }
 
@@ -352,7 +378,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                     type: 'submit',
                     value: 'Start Planning',
                     className: 'button-green',
-                    style: { padding: '0.75rem 1.5rem', borderRadius: '8px', width: '100%' }
+                    style: { padding: '0.75rem 1.5rem', borderRadius: '8px', width: '100%' },
+                    onClick: () => console.log('Start Planning button clicked')
                 })
             ]),
             h('p', { style: { fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' } }, 'No credit card required—just your email to get started.')
@@ -374,39 +401,48 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                     onClick: savePlay,
                     className: isPremium ? 'button-green' : 'button',
                     style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem', opacity: isPremium ? 1 : 0.5 },
-                    disabled: !isPremium
+                    disabled: !isPremium,
+                    onClick: () => console.log('Save Play button clicked')
                 }, `Save Play ${isPremium ? '' : '(Premium)'}`),
                 h('button', {
                     onClick: resetPositions,
                     className: 'button-gray',
-                    style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem' }
+                    style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem' },
+                    onClick: () => console.log('Reset Play button clicked')
                 }, 'Reset Play'),
                 h('button', {
                     onClick: toggleSolidMode,
                     className: isPremium && isSolidMode ? 'button-green' : isPremium ? 'button' : 'button',
                     style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem', opacity: isPremium ? 1 : 0.5 },
-                    disabled: !isPremium
+                    disabled: !isPremium,
+                    onClick: () => console.log('Solid Line button clicked')
                 }, `Solid Line ${isSolidMode ? '(On)' : '(Off)'} ${isPremium ? '' : '(Premium)'}`),
                 h('button', {
                     onClick: toggleDottedMode,
                     className: isPremium && isDottedMode ? 'button-green' : isPremium ? 'button' : 'button',
                     style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem', opacity: isPremium ? 1 : 0.5 },
-                    disabled: !isPremium
+                    disabled: !isPremium,
+                    onClick: () => console.log('Dotted Line button clicked')
                 }, `Dotted Line ${isDottedMode ? '(On)' : '(Off)'} ${isPremium ? '' : '(Premium)'}`),
                 h('div', { style: { display: 'flex', gap: '0.5rem', marginTop: '1rem' } }, [
                     h('button', {
                         onClick: undoLine,
                         className: 'button-gray',
-                        style: { padding: '0.75rem', borderRadius: '8px', flex: 1 }
+                        style: { padding: '0.75rem', borderRadius: '8px', flex: 1 },
+                        onClick: () => console.log('Undo button clicked')
                     }, 'Undo'),
                     h('button', {
                         onClick: resetLines,
                         className: 'button-gray',
-                        style: { padding: '0.75rem', borderRadius: '8px', flex: 1 }
+                        style: { padding: '0.75rem', borderRadius: '8px', flex: 1 },
+                        onClick: () => console.log('Reset Lines button clicked')
                     }, 'Reset Lines')
                 ]),
                 !isPremium && h('button', {
-                    onClick: () => setShowPremiumModal(true),
+                    onClick: () => {
+                        triggerPremiumModal();
+                        console.log('Go Premium button clicked');
+                    },
                     className: 'button-blue',
                     style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem' }
                 }, 'Go Premium')
@@ -490,18 +526,21 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                             h('button', {
                                 onClick: () => loadPlay(play),
                                 style: { flex: 1, background: '#dbeafe', padding: '0.5rem', borderRadius: '8px', textAlign: 'left' },
-                                title: play.name
+                                title: play.name,
+                                onClick: () => console.log('Load Play button clicked')
                             }, play.name),
                             h('button', {
                                 onClick: () => openNotesModal(index),
                                 className: 'button-yellow',
-                                style: { padding: '0.25rem 0.5rem', borderRadius: '8px' }
+                                style: { padding: '0.25rem 0.5rem', borderRadius: '8px' },
+                                onClick: () => console.log('Notes button clicked')
                             }, '📝'),
                             play.notes && h('span', { className: 'tooltip' }, play.notes),
                             h('button', {
                                 onClick: () => deletePlay(index),
                                 className: 'button-red',
-                                style: { padding: '0.25rem 0.5rem', borderRadius: '8px' }
+                                style: { padding: '0.25rem 0.5rem', borderRadius: '8px' },
+                                onClick: () => console.log('Delete Play button clicked')
                             }, 'Delete')
                         ]))
                     )
@@ -514,23 +553,27 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                     h('button', {
                         onClick: () => handleGoPremium('monthly'),
                         className: 'button-blue',
-                        style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' }
+                        style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' },
+                        onClick: () => console.log('Monthly Premium button clicked')
                     }, '$4.99/month'),
                     h('button', {
                         onClick: () => handleGoPremium('annual'),
                         className: 'button-blue',
-                        style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' }
+                        style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' },
+                        onClick: () => console.log('Annual Premium button clicked')
                     }, '$39.99/year (Save 33%)'),
                     h('button', {
                         onClick: () => handleGoPremium('onetime'),
                         className: 'button-blue',
-                        style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' }
+                        style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' },
+                        onClick: () => console.log('One-Time Premium button clicked')
                     }, '$74.99 One-Time Full Access'),
                     h('div', { style: { display: 'flex', justifyContent: 'center', marginTop: '1rem' } }, [
                         h('button', {
                             onClick: () => setShowPremiumModal(false),
                             className: 'button-gray',
-                            style: { padding: '0.5rem 1rem', borderRadius: '8px' }
+                            style: { padding: '0.5rem 1rem', borderRadius: '8px' },
+                            onClick: () => console.log('Cancel Premium modal button clicked')
                         }, 'Cancel')
                     ])
                 ])
@@ -548,12 +591,14 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                         h('button', {
                             onClick: saveNotes,
                             className: 'button-green',
-                            style: { padding: '0.5rem 1rem', borderRadius: '8px' }
+                            style: { padding: '0.5rem 1rem', borderRadius: '8px' },
+                            onClick: () => console.log('Save Notes button clicked')
                         }, 'Save Notes'),
                         h('button', {
                             onClick: () => setShowNotesModal(false),
                             className: 'button-gray',
-                            style: { padding: '0.5rem 1rem', borderRadius: '8px' }
+                            style: { padding: '0.5rem 1rem', borderRadius: '8px' },
+                            onClick: () => console.log('Cancel Notes modal button clicked')
                         }, 'Cancel')
                     ])
                 ])
