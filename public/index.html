@@ -166,7 +166,7 @@
     </div>
     <script>
         window.ENV = {
-            STRIPE_PUBLIC_KEY: import.meta.env.STRIPE_PUBLIC_KEY || ''
+            STRIPE_PUBLIC_KEY: '[STRIPE_PUBLIC_KEY]' // Replaced by Netlify at deploy time
         };
     </script>
     <script src="js/init.js" type="module"></script>

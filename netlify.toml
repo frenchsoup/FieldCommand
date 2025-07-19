@@ -1,0 +1,9 @@
+[build]
+  base = ""
+  publish = "public"
+  command = """
+    sed -i 's|\\[STRIPE_PUBLIC_KEY\\]|${STRIPE_PUBLIC_KEY}|g' public/index.html
+  """
+
+[build.environment]
+  STRIPE_PUBLIC_KEY = "pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5"

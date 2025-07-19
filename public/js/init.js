@@ -28,9 +28,10 @@ async function initializeFirebase() {
 
 async function loadPreact() {
     try {
-        const preactModule = await import('https://unpkg.com/preact@10.19.2/dist/preact.umd.js');
+        const preactModule = await import('https://unpkg.com/preact@10.23.2/dist/preact.umd.js');
         window.Preact = preactModule;
-        const hooksModule = await import('https://unpkg.com/preact@10.19.2/hooks/dist/hooks.umd.js');
+        window.preact = preactModule; // Set lowercase for hooks compatibility
+        const hooksModule = await import('https://unpkg.com/preact@10.23.2/hooks/dist/hooks.umd.js');
         window.PreactHooks = hooksModule;
         await initApp();
     } catch (error) {
@@ -51,6 +52,14 @@ async function initApp() {
     const { app, db, auth } = firebaseInstance;
 
     const stripeKey = window.ENV?.STRIPE_PUBLIC_KEY || 'pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5';
+    if (!stripeKey || stripeKey === '[STRIPE_PUBLIC_KEY]') {
+        console.error('Stripe public key is missing or not configured in Netlify environment variables.');
+        document.getElementById('loading').innerHTML = `
+            <div style="text-align: center; color: #e53e3e;">
+                Payment system unavailable. Please try again later or contact support.
+            </div>`;
+        return;
+    }
     const stripePromise = import('https://js.stripe.com/v3/').then(() => {
         return window.Stripe(stripeKey);
     }).catch(error => {
