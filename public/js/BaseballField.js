@@ -52,7 +52,7 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     // Initialize auth without immediate play loading
     useEffect(() => {
         if (!app || !db || !auth) {
-            const errMsg = "Firebase not initialized. Check console for details.";
+            const errMsg = "Firebase not initialized.";
             setLocalError(errMsg);
             setError(errMsg);
             console.error(errMsg);
@@ -62,13 +62,14 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         }
         auth.signInAnonymously().then((userCredential) => {
             setUserId(userCredential.user.uid);
+            console.log('User ID set:', userCredential.user.uid); // Debug log
             setIsLoading(false);
             document.getElementById('loading').style.display = 'none';
         }).catch((err) => {
-            const errMsg = "Authentication failed: " + err.message;
+            const errMsg = "Authentication failed.";
             setLocalError(errMsg);
             setError(errMsg);
-            console.error(errMsg);
+            console.error('Auth error:', err.message);
             setIsLoading(false);
             document.getElementById('loading').style.display = 'none';
         });
@@ -76,17 +77,18 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
 
     // Load plays only after email unlock or premium status
     useEffect(() => {
-        if (!userId || (!showEmailGate && !isPremium)) {
+        if (!userId || (showEmailGate && !isPremium)) {
             return;
         }
+        console.log('Loading plays for user:', userId); // Debug log
         const unsubscribe = db.collection('users').doc(userId).collection('plays').onSnapshot((querySnapshot) => {
             const plays = querySnapshot.empty ? [] : querySnapshot.docs.map(doc => doc.data());
             setSavedPlays(plays);
         }, (err) => {
-            const errMsg = "Failed to load plays: " + err.message;
+            const errMsg = "Unable to load plays. Please try again later.";
             setLocalError(errMsg);
             setError(errMsg);
-            console.error(errMsg);
+            console.error('Play load error:', err.message);
             setSavedPlays([]); // Fallback to empty state
         });
         return () => unsubscribe();
@@ -140,8 +142,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         } catch (err) {
             errorMessage.textContent = "Something went wrong. Please try again.";
             errorMessage.style.display = 'block';
-            setLocalError("Email submission failed: " + err.message);
-            setError("Email submission failed: " + err.message);
+            setLocalError("Email submission failed.");
+            setError("Email submission failed.");
             console.error('Email submission error:', err);
             gtag('event', 'unlock_app_error', { event_category: 'Engagement', event_label: 'Email Submission Error' });
         }
@@ -290,14 +292,14 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                 cancelUrl: window.location.href
             });
             if (result.error) {
-                setLocalError(`Payment error: ${result.error.message}`);
-                setError(`Payment error: ${result.error.message}`);
+                setLocalError(`Payment error.`);
+                setError(`Payment error.`);
                 gtag('event', 'payment_error', { event_category: 'Ecommerce', event_label: result.error.message });
             }
         } catch (err) {
             console.error('Error in handleGoPremium:', err);
-            setLocalError('Failed to initiate payment. Please try again.');
-            setError('Failed to initiate payment. Please try again.');
+            setLocalError('Failed to initiate payment.');
+            setError('Failed to initiate payment.');
         }
     };
 
@@ -350,7 +352,7 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         return h('div', { style: { textAlign: 'center', color: '#dc2626', background: '#fef2f2', padding: '1rem', borderRadius: '8px' } }, [
             h('h1', { style: { fontSize: '1.5rem', fontWeight: 'bold' } }, 'Error'),
             h('p', { style: { fontSize: '1rem', margin: '0.5rem 0' } }, error),
-            h('p', { style: { fontSize: '0.875rem', color: '#6b7280' } }, 'Check the console (F12) for more details or contact support at support@fieldcommand.netlify.app.'),
+            h('p', { style: { fontSize: '0.875rem', color: '#6b7280' } }, 'Please try again later or contact support at support@fieldcommand.netlify.app.'),
             h('button', {
                 className: 'button-blue',
                 style: { padding: '0.5rem 1rem', borderRadius: '8px', marginTop: '1rem' },
