@@ -45,9 +45,11 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     const [showSuccess, setShowSuccess] = useState(false);
     const [error, setLocalError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [userId, setUserId] = useState(null);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+    // Initialize auth without immediate play loading
     useEffect(() => {
         if (!app || !db || !auth) {
             const errMsg = "Firebase not initialized. Check console for details.";
@@ -59,21 +61,9 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             return;
         }
         auth.signInAnonymously().then((userCredential) => {
-            const userId = userCredential.user.uid;
-            db.collection('users').doc(userId).collection('plays').onSnapshot((querySnapshot) => {
-                const plays = [];
-                querySnapshot.forEach((doc) => plays.push(doc.data()));
-                setSavedPlays(plays);
-                setIsLoading(false);
-                document.getElementById('loading').style.display = 'none';
-            }, (err) => {
-                const errMsg = "Failed to load plays: " + err.message;
-                setLocalError(errMsg);
-                setError(errMsg);
-                console.error(errMsg);
-                setIsLoading(false);
-                document.getElementById('loading').style.display = 'none';
-            });
+            setUserId(userCredential.user.uid);
+            setIsLoading(false);
+            document.getElementById('loading').style.display = 'none';
         }).catch((err) => {
             const errMsg = "Authentication failed: " + err.message;
             setLocalError(errMsg);
@@ -83,6 +73,24 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             document.getElementById('loading').style.display = 'none';
         });
     }, [app, db, auth, setError]);
+
+    // Load plays only after email unlock or premium status
+    useEffect(() => {
+        if (!userId || (!showEmailGate && !isPremium)) {
+            return;
+        }
+        const unsubscribe = db.collection('users').doc(userId).collection('plays').onSnapshot((querySnapshot) => {
+            const plays = querySnapshot.empty ? [] : querySnapshot.docs.map(doc => doc.data());
+            setSavedPlays(plays);
+        }, (err) => {
+            const errMsg = "Failed to load plays: " + err.message;
+            setLocalError(errMsg);
+            setError(errMsg);
+            console.error(errMsg);
+            setSavedPlays([]); // Fallback to empty state
+        });
+        return () => unsubscribe();
+    }, [userId, showEmailGate, isPremium, db]);
 
     const getClientPosition = (e) => {
         const isTouch = e.type.startsWith('touch');
@@ -122,7 +130,7 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             setShowSuccess(true);
             setTimeout(() => {
                 setShowSuccess(false);
-                setShowEmailGate(false); // Ensure gate closes
+                setShowEmailGate(false);
             }, 2000);
             gtag('event', 'unlock_app_success', { event_category: 'Engagement', event_label: 'Email Submission Success', value: 1 });
             localStorage.setItem('fieldCommandUnlocked', 'true');
@@ -153,8 +161,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             const newPlay = { name: playName, positions: { ...positions }, lines: [...lines], notes: '' };
             const newSavedPlays = [...savedPlays, newPlay];
             setSavedPlays(newSavedPlays);
-            if (auth.currentUser) {
-                db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playName).set(newPlay);
+            if (userId) {
+                db.collection('users').doc(userId).collection('plays').doc(playName).set(newPlay);
             }
             setPlayName('');
             setLocalError(null);
@@ -174,8 +182,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         const playToDelete = savedPlays[index];
         const newSavedPlays = savedPlays.filter((_, i) => i !== index);
         setSavedPlays(newSavedPlays);
-        if (auth.currentUser) {
-            db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playToDelete.name).delete();
+        if (userId) {
+            db.collection('users').doc(userId).collection('plays').doc(playToDelete.name).delete();
         }
         resetPositions();
         setLocalError(null);
@@ -308,8 +316,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             const updatedPlays = [...savedPlays];
             updatedPlays[currentPlayIndex] = { ...updatedPlays[currentPlayIndex], notes: currentNotes };
             setSavedPlays(updatedPlays);
-            if (auth.currentUser) {
-                db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(updatedPlays[currentPlayIndex].name).set(updatedPlays[currentPlayIndex]);
+            if (userId) {
+                db.collection('users').doc(userId).collection('plays').doc(updatedPlays[currentPlayIndex].name).set(updatedPlays[currentPlayIndex]);
             }
             setLocalError(null);
             setError(null);
@@ -342,7 +350,12 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         return h('div', { style: { textAlign: 'center', color: '#dc2626', background: '#fef2f2', padding: '1rem', borderRadius: '8px' } }, [
             h('h1', { style: { fontSize: '1.5rem', fontWeight: 'bold' } }, 'Error'),
             h('p', { style: { fontSize: '1rem', margin: '0.5rem 0' } }, error),
-            h('p', { style: { fontSize: '0.875rem', color: '#6b7280' } }, 'Check the console (F12) for more details or contact support at support@fieldcommand.netlify.app.')
+            h('p', { style: { fontSize: '0.875rem', color: '#6b7280' } }, 'Check the console (F12) for more details or contact support at support@fieldcommand.netlify.app.'),
+            h('button', {
+                className: 'button-blue',
+                style: { padding: '0.5rem 1rem', borderRadius: '8px', marginTop: '1rem' },
+                onClick: () => window.location.reload()
+            }, 'Retry')
         ]);
     }
 
