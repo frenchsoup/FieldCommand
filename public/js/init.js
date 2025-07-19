@@ -35,7 +35,7 @@ async function loadPreact() {
         if (!hooksModule) {
             throw new Error('Preact hooks module failed to load');
         }
-        window.PreactHooks = hooksModule;
+        window.preactHooks = hooksModule; // Changed from PreactHooks to preactHooks
         await initApp();
     } catch (error) {
         console.error('Failed to load Preact:', error);
@@ -66,8 +66,8 @@ async function initApp() {
         return null;
     });
 
-    const { h, render } = window.Preact;
-    const { useState } = window.PreactHooks;
+    const { h, render } = window.preact;
+    const { useState } = window.preactHooks;
 
     function App() {
         const [error, setError] = useState(null);
