@@ -43,11 +43,13 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     const [isPremium, setIsPremium] = useState(localStorage.getItem('isPremium') === 'true');
     const [showEmailGate, setShowEmailGate] = useState(localStorage.getItem('fieldCommandUnlocked') !== 'true' && !isPremium);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [error, setLocalError] = useState(null); // Added local error state
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     useEffect(() => {
         if (!app || !db || !auth) {
+            setLocalError("Firebase not initialized. Check console for details.");
             setError("Firebase not initialized. Check console for details.");
             return;
         }
@@ -58,13 +60,15 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                 querySnapshot.forEach((doc) => plays.push(doc.data()));
                 setSavedPlays(plays);
                 document.getElementById('loading').style.display = 'none';
-            }, (error) => {
-                setError("Failed to load plays: " + error.message);
+            }, (err) => {
+                setLocalError("Failed to load plays: " + err.message);
+                setError("Failed to load plays: " + err.message);
             });
-        }).catch((error) => {
-            setError("Authentication failed: " + error.message);
+        }).catch((err) => {
+            setLocalError("Authentication failed: " + err.message);
+            setError("Authentication failed: " + err.message);
         });
-    }, [app, db, auth]);
+    }, [app, db, auth, setError]);
 
     const getClientPosition = (e) => {
         const isTouch = e.type.startsWith('touch');
@@ -106,9 +110,11 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             }, 2000);
             gtag('event', 'unlock_app_success', { event_category: 'Engagement', event_label: 'Email Submission Success', value: 1 });
             localStorage.setItem('fieldCommandUnlocked', 'true');
-        } catch (error) {
+        } catch (err) {
             errorMessage.textContent = "Something went wrong. Please try again.";
             errorMessage.style.display = 'block';
+            setLocalError("Email submission failed: " + err.message);
+            setError("Email submission failed: " + err.message);
             gtag('event', 'unlock_app_error', { event_category: 'Engagement', event_label: 'Email Submission Error' });
         }
     };
@@ -127,6 +133,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                 db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playName).set(newPlay);
             }
             setPlayName('');
+            setLocalError(null); // Clear error on success
+            setError(null);
         }
     };
 
@@ -134,6 +142,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         setPositions(play.positions);
         setLines(play.lines || []);
         setPlayName(play.name);
+        setLocalError(null);
+        setError(null);
     };
 
     const deletePlay = (index) => {
@@ -144,6 +154,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playToDelete.name).delete();
         }
         resetPositions();
+        setLocalError(null);
+        setError(null);
     };
 
     const resetPositions = () => {
@@ -154,6 +166,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         setIsSolidMode(false);
         setIsDottedMode(false);
         setPlayName('');
+        setLocalError(null);
+        setError(null);
     };
 
     const toggleSolidMode = () => {
@@ -236,11 +250,13 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                 cancelUrl: window.location.href
             });
             if (result.error) {
+                setLocalError(`Payment error: ${result.error.message}`);
                 setError(`Payment error: ${result.error.message}`);
                 gtag('event', 'payment_error', { event_category: 'Ecommerce', event_label: result.error.message });
             }
-        } catch (error) {
-            console.error('Error in handleGoPremium:', error);
+        } catch (err) {
+            console.error('Error in handleGoPremium:', err);
+            setLocalError('Failed to initiate payment. Please try again.');
             setError('Failed to initiate payment. Please try again.');
         }
     };
@@ -260,6 +276,8 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             if (auth.currentUser) {
                 db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(updatedPlays[currentPlayIndex].name).set(updatedPlays[currentPlayIndex]);
             }
+            setLocalError(null);
+            setError(null);
         }
         setShowNotesModal(false);
         setCurrentPlayIndex(null);
