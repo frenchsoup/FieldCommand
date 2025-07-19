@@ -41,7 +41,7 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
     const [currentPlayIndex, setCurrentPlayIndex] = useState(null);
     const [currentNotes, setCurrentNotes] = useState('');
     const [isPremium, setIsPremium] = useState(localStorage.getItem('isPremium') === 'true');
-    const [showEmailGate, setShowEmailGate] = useState(localStorage.getItem('fieldCommandUnlocked') !== 'true' && !isPremium);
+    const [showEmailGate, setShowEmailGate] = useState(localStorage.getItem('fieldCommandUnlocked') !== 'true');
     const [showSuccess, setShowSuccess] = useState(false);
     const [error, setLocalError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +62,7 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
         }
         auth.signInAnonymously().then((userCredential) => {
             setUserId(userCredential.user.uid);
-            console.log('User ID set:', userCredential.user.uid); // Debug log
+            console.log('User ID set:', userCredential.user.uid);
             setIsLoading(false);
             document.getElementById('loading').style.display = 'none';
         }).catch((err) => {
@@ -77,10 +77,10 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
 
     // Load plays only after email unlock or premium status
     useEffect(() => {
-        if (!userId || (showEmailGate && !isPremium)) {
+        if (!userId || showEmailGate) {
             return;
         }
-        console.log('Loading plays for user:', userId); // Debug log
+        console.log('Loading plays for user:', userId);
         const unsubscribe = db.collection('users').doc(userId).collection('plays').onSnapshot((querySnapshot) => {
             const plays = querySnapshot.empty ? [] : querySnapshot.docs.map(doc => doc.data());
             setSavedPlays(plays);
@@ -92,7 +92,7 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
             setSavedPlays([]); // Fallback to empty state
         });
         return () => unsubscribe();
-    }, [userId, showEmailGate, isPremium, db]);
+    }, [userId, showEmailGate, db]);
 
     const getClientPosition = (e) => {
         const isTouch = e.type.startsWith('touch');
@@ -368,7 +368,7 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                 h('span', { className: 'title-highlight' }, 'FieldCommand')
             ]),
             h('p', { style: { fontSize: '1.125rem', color: '#4b5563', marginTop: '0.5rem' } },
-                'The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies—all in one tool.'
+                'The ultimate baseball defense planner for coaches. Enter your email to get started.'
             )
         ]),
         showEmailGate ? h('div', { style: { maxWidth: '28rem', margin: '0 auto', position: 'relative' } }, [
@@ -391,10 +391,10 @@ const BaseballField = ({ app, db, auth, stripePromise, setError }) => {
                 ),
                 h('input', {
                     type: 'submit',
-                    value: 'Start Planning',
+                    value: 'Unlock FieldCommand',
                     className: 'button-green',
                     style: { padding: '0.75rem 1.5rem', borderRadius: '8px', width: '100%' },
-                    onClick: () => console.log('Start Planning button clicked')
+                    onClick: () => console.log('Unlock button clicked')
                 })
             ]),
             h('p', { style: { fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' } }, 'No credit card required—just your email to get started.')
