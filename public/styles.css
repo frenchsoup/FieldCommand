@@ -6,6 +6,11 @@ body { margin: 0; font-family: Arial, sans-serif; }
 .button-red { background-color: #ef4444; color: white; border: none; cursor: pointer; }
 .button-yellow { background-color: #f59e0b; color: white; border: none; cursor: pointer; }
 .title-highlight { color: #3b82f6; }
+h1 { /* Ensure header is visible */
+  margin: 0;
+  padding: 10px;
+  text-align: center;
+}
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
 .modal-content { background: white; padding: 1rem; border-radius: 8px; width: 90%; max-width: 400px; }
 .svg-shadow { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }

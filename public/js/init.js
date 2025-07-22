@@ -18,7 +18,7 @@ async function initializeFirebase() {
         console.error('Firebase initialization failed:', error);
         document.getElementById('loading').innerHTML = `
             <div style="text-align: center; color: #e53e3e;">
-                Failed to connect to the server. Please try again later or contact support.
+                Failed to initialize Firebase. Please check your configuration and try again later.
             </div>`;
         return null;
     }
@@ -28,12 +28,12 @@ async function loadPreact() {
     try {
         const preactModule = await import('https://esm.sh/preact@10.23.2');
         window.Preact = preactModule;
-        window.preact = preactModule; // Ensure lowercase for compatibility
+        window.preact = preactModule;
         const hooksModule = await import('https://esm.sh/preact@10.23.2/hooks');
         if (!hooksModule) {
             throw new Error('Preact hooks module failed to load');
         }
-        window.preactHooks = hooksModule; // Changed from PreactHooks to preactHooks
+        window.preactHooks = hooksModule;
         await initApp();
     } catch (error) {
         console.error('Failed to load Preact:', error);
@@ -57,10 +57,6 @@ async function initApp() {
         return window.Stripe(stripeKey);
     }).catch(error => {
         console.error('Stripe load failed:', error);
-        document.getElementById('loading').innerHTML = `
-            <div style="text-align: center; color: #e53e3e;">
-                Payment system unavailable. Please try again later or contact support.
-            </div>`;
         return null;
     });
 
