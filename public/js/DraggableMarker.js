@@ -63,7 +63,7 @@ const DraggableMarker = memo(({ id, x, y, label, color, onDrag }) => {
 
     const radius = id === 'baseball' ? 10 : 15;
     const fontSize = id === 'baseball' ? 14 : 12;
-    const textOffset = -(fontSize / 2) + 1; // Center vertically with small padding
+    const textOffset = -((fontSize / 2) - 1); // Adjust to center text within radius, accounting for baseline
 
     return window.Preact.h('g', {
         onMouseDown: handleStart,
@@ -77,7 +77,7 @@ const DraggableMarker = memo(({ id, x, y, label, color, onDrag }) => {
         'aria-label': `${label} marker at position ${x},${y}`
     }, [
         window.Preact.h('circle', { cx: x, cy: y, r: radius, fill: color, stroke: 'white', strokeWidth: 2 }),
-        label && window.Preact.h('text', { x: x, y: y + textOffset, textAnchor: 'middle', fill: 'white', fontSize: fontSize }, label)
+        label && window.Preact.h('text', { x: x, y: y + textOffset, textAnchor: 'middle', fill: 'white', fontSize: fontSize, dy: '.3em' }, label)
     ]);
 });
 

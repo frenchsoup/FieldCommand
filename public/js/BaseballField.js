@@ -174,10 +174,10 @@ const BaseballField = ({ setError }) => {
             id: 'arrow',
             markerWidth: '10',
             markerHeight: '10',
-            refX: '8',
+            refX: '9', // Adjusted to place arrow at line end
             refY: '3',
             orient: 'auto',
-            markerUnits: 'strokeWidth' // Ensure proper scaling
+            markerUnits: 'strokeWidth'
           }, h('path', { d: 'M0,0 L0,6 L9,3 Z', fill: 'black' }))
         ),
         h('path', {
@@ -208,7 +208,7 @@ const BaseballField = ({ setError }) => {
             stroke: 'black',
             strokeWidth: '2',
             strokeDasharray: line.type === 'dotted' ? '5,5' : 'none',
-            markerEnd: 'url(#arrow)' // Ensure arrow is applied
+            markerEnd: 'url(#arrow)'
           })
         )),
         currentLine && h('g', null,
@@ -220,7 +220,7 @@ const BaseballField = ({ setError }) => {
             stroke: 'black',
             strokeWidth: '2',
             strokeDasharray: currentLine.type === 'dotted' ? '5,5' : 'none',
-            markerEnd: 'url(#arrow)' // Ensure arrow during drawing
+            markerEnd: 'url(#arrow)'
           })
         ),
         Object.entries(positions).map(([id, { x, y, label }]) => h(DraggableMarker, {
