@@ -1,3 +1,5 @@
+import { DraggableMarker } from './DraggableMarker.js';
+
 const { h, Component } = window.preact;
 const { useState, useEffect } = window.preactHooks;
 
@@ -11,88 +13,12 @@ const initialPositions = {
   left: { x: 225, y: 125, label: 'LF' },
   center: { x: 350, y: 75, label: 'CF' },
   right: { x: 475, y: 125, label: 'RF' },
-  baseball: { x: 350, y: 325, label: '⚾' }, // Moved to pitcher’s circle
+  baseball: { x: 450, y: 410, label: '⚾' }, // Back to original position
   runner1: { x: 485, y: 410, label: 'BR' },
   runner2: { x: 520, y: 410, label: 'BR' },
   runner3: { x: 485, y: 445, label: 'BR' },
   runner4: { x: 520, y: 445, label: 'BR' }
 };
-
-function DraggableMarker({ id, x, y, label, color, onDrag }) {
-  const [isDragging, setIsDragging] = useState(false);
-
-  const getClientPosition = (e) => {
-    const isTouch = e.type.startsWith('touch');
-    return {
-      x: isTouch ? e.touches[0].clientX : e.clientX,
-      y: isTouch ? e.touches[0].clientY : e.clientY
-    };
-  };
-
-  const handleStart = (e) => {
-    setIsDragging(true);
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleMove = (e) => {
-    if (isDragging) {
-      const { x, y } = getClientPosition(e);
-      const svg = document.querySelector('svg');
-      const pt = svg.createSVGPoint();
-      pt.x = x;
-      pt.y = y;
-      const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
-      onDrag(id, transformed.x, transformed.y);
-      e.preventDefault();
-    }
-  };
-
-  const handleEnd = () => {
-    setIsDragging(false);
-  };
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMove);
-      document.addEventListener('mouseup', handleEnd);
-      document.addEventListener('touchmove', handleMove, { passive: false });
-      document.addEventListener('touchend', handleEnd);
-    }
-    return () => {
-      document.removeEventListener('mousemove', handleMove);
-      document.removeEventListener('mouseup', handleEnd);
-      document.removeEventListener('touchmove', handleMove);
-      document.removeEventListener('touchend', handleEnd);
-    };
-  }, [isDragging, handleMove, handleEnd]);
-
-  const radius = id === 'baseball' ? 8 : 12;
-  return h('g', {
-    onMouseDown: handleStart,
-    onTouchStart: handleStart,
-    className: 'cursor-move touch-none',
-    tabIndex: '0',
-    role: 'button',
-    'aria-label': `${label} marker at position ${x},${y}`
-  },
-    h('circle', {
-      cx: x,
-      cy: y,
-      r: radius,
-      fill: color,
-      stroke: 'white',
-      strokeWidth: '2'
-    }),
-    label && h('text', {
-      x: x,
-      y: y - (radius / 2) + 2, // Centered vertically within circle
-      textAnchor: 'middle',
-      fill: 'white',
-      fontSize: id === 'baseball' ? 12 : 10
-    }, label)
-  );
-}
 
 const BaseballField = ({ setError }) => {
   const [positions, setPositions] = useState(() => {
@@ -139,7 +65,7 @@ const BaseballField = ({ setError }) => {
       setCurrentLine({
         start: { x: transformed.x, y: transformed.y },
         end: { x: transformed.x, y: transformed.y },
-        type: isDottedMode ? 'dotted' : 'solid' // Use isDottedMode to determine type
+        type: isDottedMode ? 'dotted' : 'solid'
       });
       e.preventDefault();
     }
@@ -261,7 +187,7 @@ const BaseballField = ({ setError }) => {
           d: 'M 350 425 L 250 325 L 350 225 L 450 325 Z',
           fill: 'rgba(0, 128, 0, 0.8)'
         }),
-        h('circle', { cx: '350', cy: '325', r: '20', fill: 'burlywood' }), // Pitcher’s circle
+        h('circle', { cx: '350', cy: '325', r: '20', fill: 'burlywood' }),
         h('rect', { x: '340', y: '320', width: '20', height: '5', fill: 'white' }),
         h('path', { d: 'M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z', fill: 'white' }),
         h('rect', { x: '240', y: '315', width: '15', height: '15', fill: 'white', transform: 'rotate(45 250 325)' }),
@@ -271,6 +197,7 @@ const BaseballField = ({ setError }) => {
         h('line', { x1: '250', y1: '325', x2: '350', y2: '225', stroke: 'white', strokeWidth: '2' }),
         h('line', { x1: '350', y1: '225', x2: '450', y2: '325', stroke: 'white', strokeWidth: '2' }),
         h('line', { x1: '450', y1: '325', x2: '350', y2: '425', stroke: 'white', strokeWidth: '2' }),
+        h('circle', { cx: '450', cy: '410', r: '15', fill: 'white', opacity: '0.7' }), // White circle behind ball
         lines.map((line, index) => h('g', { key: index },
           h('line', {
             x1: line.start.x,
@@ -280,7 +207,7 @@ const BaseballField = ({ setError }) => {
             stroke: 'black',
             strokeWidth: '2',
             strokeDasharray: line.type === 'dotted' ? '5,5' : 'none',
-            markerEnd: 'url(#arrow)' // Add arrow at end
+            markerEnd: 'url(#arrow)' // Ensure arrow
           })
         )),
         currentLine && h('g', null,
@@ -292,7 +219,7 @@ const BaseballField = ({ setError }) => {
             stroke: 'black',
             strokeWidth: '2',
             strokeDasharray: currentLine.type === 'dotted' ? '5,5' : 'none',
-            markerEnd: 'url(#arrow)' // Add arrow at end
+            markerEnd: 'url(#arrow)' // Ensure arrow
           })
         ),
         Object.entries(positions).map(([id, { x, y, label }]) => h(DraggableMarker, {
