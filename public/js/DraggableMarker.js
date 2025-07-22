@@ -61,6 +61,10 @@ const DraggableMarker = memo(({ id, x, y, label, color, onDrag }) => {
         };
     }, [isDragging]);
 
+    const radius = id === 'baseball' ? 10 : 15;
+    const fontSize = id === 'baseball' ? 14 : 12;
+    const textOffset = -(fontSize / 2) + 1; // Center vertically with small padding
+
     return window.Preact.h('g', {
         onMouseDown: handleStart,
         onTouchStart: handleStart,
@@ -72,8 +76,8 @@ const DraggableMarker = memo(({ id, x, y, label, color, onDrag }) => {
         role: 'button',
         'aria-label': `${label} marker at position ${x},${y}`
     }, [
-        window.Preact.h('circle', { cx: x, cy: y, r: id === 'baseball' ? 10 : 15, fill: color, stroke: 'white', strokeWidth: 2 }),
-        label && window.Preact.h('text', { x: x, y: y + (id === 'baseball' ? 4 : 5), textAnchor: 'middle', fill: 'white', fontSize: id === 'baseball' ? 14 : 12 }, label)
+        window.Preact.h('circle', { cx: x, cy: y, r: radius, fill: color, stroke: 'white', strokeWidth: 2 }),
+        label && window.Preact.h('text', { x: x, y: y + textOffset, textAnchor: 'middle', fill: 'white', fontSize: fontSize }, label)
     ]);
 });
 

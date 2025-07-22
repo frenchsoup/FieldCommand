@@ -72,7 +72,7 @@ const BaseballField = ({ setError }) => {
   };
 
   const handleMouseMove = (e) => {
-    if (drawing) {
+    if (drawing && currentLine) {
       const svg = document.querySelector('svg');
       const { x, y } = getClientPosition(e);
       const pt = svg.createSVGPoint();
@@ -176,7 +176,8 @@ const BaseballField = ({ setError }) => {
             markerHeight: '10',
             refX: '8',
             refY: '3',
-            orient: 'auto'
+            orient: 'auto',
+            markerUnits: 'strokeWidth' // Ensure proper scaling
           }, h('path', { d: 'M0,0 L0,6 L9,3 Z', fill: 'black' }))
         ),
         h('path', {
@@ -207,7 +208,7 @@ const BaseballField = ({ setError }) => {
             stroke: 'black',
             strokeWidth: '2',
             strokeDasharray: line.type === 'dotted' ? '5,5' : 'none',
-            markerEnd: 'url(#arrow)'
+            markerEnd: 'url(#arrow)' // Ensure arrow is applied
           })
         )),
         currentLine && h('g', null,
@@ -219,7 +220,7 @@ const BaseballField = ({ setError }) => {
             stroke: 'black',
             strokeWidth: '2',
             strokeDasharray: currentLine.type === 'dotted' ? '5,5' : 'none',
-            markerEnd: 'url(#arrow)'
+            markerEnd: 'url(#arrow)' // Ensure arrow during drawing
           })
         ),
         Object.entries(positions).map(([id, { x, y, label }]) => h(DraggableMarker, {
