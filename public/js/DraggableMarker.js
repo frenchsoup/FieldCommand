@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'https://esm.sh/preact@10.23.2/hooks';
+
 function memo(fn) {
     let lastProps, lastResult;
     return (props) => {
@@ -10,7 +12,7 @@ function memo(fn) {
 }
 
 const DraggableMarker = memo(({ id, x, y, label, color, onDrag }) => {
-    const [isDragging, setIsDragging] = window.PreactHooks.useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     const getClientPosition = (e) => {
         const isTouch = e.type.startsWith('touch');
@@ -44,7 +46,7 @@ const DraggableMarker = memo(({ id, x, y, label, color, onDrag }) => {
         e.preventDefault();
     };
 
-    window.PreactHooks.useEffect(() => {
+    useEffect(() => {
         if (isDragging) {
             document.addEventListener('mousemove', handleMove);
             document.addEventListener('mouseup', handleEnd);

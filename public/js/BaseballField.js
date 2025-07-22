@@ -13,7 +13,7 @@ const initialPositions = {
   left: { x: 225, y: 125, label: 'LF' },
   center: { x: 350, y: 75, label: 'CF' },
   right: { x: 475, y: 125, label: 'RF' },
-  baseball: { x: 450, y: 410, label: '⚾' }, // Back to original position
+  baseball: { x: 450, y: 410, label: '⚾' },
   runner1: { x: 485, y: 410, label: 'BR' },
   runner2: { x: 520, y: 410, label: 'BR' },
   runner3: { x: 485, y: 445, label: 'BR' },
@@ -150,7 +150,7 @@ const BaseballField = ({ setError }) => {
         className: `px-4 py-3 rounded-lg text-base ${isPremium && isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} ${!isPremium ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'} transition`
       }, 'Dotted Line', isPremium ? '' : ' (Premium)'),
       !isPremium && h('button', {
-        onClick: () => setIsPremium(true), // Mock premium for now
+        onClick: () => setIsPremium(true),
         className: 'bg-blue-600 text-white px-4 py-3 rounded-lg text-base hover:bg-blue-700 transition'
       }, 'Go Premium')
     ),
@@ -197,7 +197,7 @@ const BaseballField = ({ setError }) => {
         h('line', { x1: '250', y1: '325', x2: '350', y2: '225', stroke: 'white', strokeWidth: '2' }),
         h('line', { x1: '350', y1: '225', x2: '450', y2: '325', stroke: 'white', strokeWidth: '2' }),
         h('line', { x1: '450', y1: '325', x2: '350', y2: '425', stroke: 'white', strokeWidth: '2' }),
-        h('circle', { cx: '450', cy: '410', r: '15', fill: 'white', opacity: '0.7' }), // White circle behind ball
+        h('circle', { cx: '450', cy: '410', r: '15', fill: 'white', opacity: '0.7' }),
         lines.map((line, index) => h('g', { key: index },
           h('line', {
             x1: line.start.x,
@@ -207,7 +207,7 @@ const BaseballField = ({ setError }) => {
             stroke: 'black',
             strokeWidth: '2',
             strokeDasharray: line.type === 'dotted' ? '5,5' : 'none',
-            markerEnd: 'url(#arrow)' // Ensure arrow
+            markerEnd: 'url(#arrow)'
           })
         )),
         currentLine && h('g', null,
@@ -219,7 +219,7 @@ const BaseballField = ({ setError }) => {
             stroke: 'black',
             strokeWidth: '2',
             strokeDasharray: currentLine.type === 'dotted' ? '5,5' : 'none',
-            markerEnd: 'url(#arrow)' // Ensure arrow
+            markerEnd: 'url(#arrow)'
           })
         ),
         Object.entries(positions).map(([id, { x, y, label }]) => h(DraggableMarker, {
