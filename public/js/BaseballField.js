@@ -11,7 +11,7 @@ const initialPositions = {
   left: { x: 225, y: 125, label: 'LF' },
   center: { x: 350, y: 75, label: 'CF' },
   right: { x: 475, y: 125, label: 'RF' },
-  baseball: { x: 450, y: 410, label: '⚾' },
+  baseball: { x: 350, y: 325, label: '⚾' }, // Moved to pitcher’s circle
   runner1: { x: 485, y: 410, label: 'BR' },
   runner2: { x: 520, y: 410, label: 'BR' },
   runner3: { x: 485, y: 445, label: 'BR' },
@@ -67,6 +67,7 @@ function DraggableMarker({ id, x, y, label, color, onDrag }) {
     };
   }, [isDragging, handleMove, handleEnd]);
 
+  const radius = id === 'baseball' ? 8 : 12;
   return h('g', {
     onMouseDown: handleStart,
     onTouchStart: handleStart,
@@ -78,17 +79,17 @@ function DraggableMarker({ id, x, y, label, color, onDrag }) {
     h('circle', {
       cx: x,
       cy: y,
-      r: id === 'baseball' ? 8 : 12, // Reduced from 10/15 to 8/12 for proportionality
+      r: radius,
       fill: color,
       stroke: 'white',
       strokeWidth: '2'
     }),
     label && h('text', {
       x: x,
-      y: y + (id === 'baseball' ? 3 : 4), // Adjusted for smaller size
+      y: y - (radius / 2) + 2, // Centered vertically within circle
       textAnchor: 'middle',
       fill: 'white',
-      fontSize: id === 'baseball' ? 12 : 10 // Reduced font size
+      fontSize: id === 'baseball' ? 12 : 10
     }, label)
   );
 }
@@ -138,7 +139,7 @@ const BaseballField = ({ setError }) => {
       setCurrentLine({
         start: { x: transformed.x, y: transformed.y },
         end: { x: transformed.x, y: transformed.y },
-        type: isSolidMode ? 'solid' : 'dotted'
+        type: isDottedMode ? 'dotted' : 'solid' // Use isDottedMode to determine type
       });
       e.preventDefault();
     }
@@ -260,7 +261,7 @@ const BaseballField = ({ setError }) => {
           d: 'M 350 425 L 250 325 L 350 225 L 450 325 Z',
           fill: 'rgba(0, 128, 0, 0.8)'
         }),
-        h('circle', { cx: '350', cy: '325', r: '20', fill: 'burlywood' }),
+        h('circle', { cx: '350', cy: '325', r: '20', fill: 'burlywood' }), // Pitcher’s circle
         h('rect', { x: '340', y: '320', width: '20', height: '5', fill: 'white' }),
         h('path', { d: 'M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z', fill: 'white' }),
         h('rect', { x: '240', y: '315', width: '15', height: '15', fill: 'white', transform: 'rotate(45 250 325)' }),
@@ -279,7 +280,7 @@ const BaseballField = ({ setError }) => {
             stroke: 'black',
             strokeWidth: '2',
             strokeDasharray: line.type === 'dotted' ? '5,5' : 'none',
-            markerEnd: 'url(#arrow)'
+            markerEnd: 'url(#arrow)' // Add arrow at end
           })
         )),
         currentLine && h('g', null,
@@ -291,7 +292,7 @@ const BaseballField = ({ setError }) => {
             stroke: 'black',
             strokeWidth: '2',
             strokeDasharray: currentLine.type === 'dotted' ? '5,5' : 'none',
-            markerEnd: 'url(#arrow)'
+            markerEnd: 'url(#arrow)' // Add arrow at end
           })
         ),
         Object.entries(positions).map(([id, { x, y, label }]) => h(DraggableMarker, {
