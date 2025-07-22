@@ -78,17 +78,17 @@ function DraggableMarker({ id, x, y, label, color, onDrag }) {
     h('circle', {
       cx: x,
       cy: y,
-      r: id === 'baseball' ? 10 : 15,
+      r: id === 'baseball' ? 8 : 12, // Reduced from 10/15 to 8/12 for proportionality
       fill: color,
       stroke: 'white',
       strokeWidth: '2'
     }),
     label && h('text', {
       x: x,
-      y: y + (id === 'baseball' ? 4 : 5),
+      y: y + (id === 'baseball' ? 3 : 4), // Adjusted for smaller size
       textAnchor: 'middle',
       fill: 'white',
-      fontSize: id === 'baseball' ? 14 : 12
+      fontSize: id === 'baseball' ? 12 : 10 // Reduced font size
     }, label)
   );
 }
@@ -194,93 +194,116 @@ const BaseballField = ({ setError }) => {
     });
   };
 
-  return h('div', { className: 'container p-4 md:p-6 w-full max-w-[1200px] flex justify-center' },
-    h('svg', {
-      width: '100%',
-      height: '100%',
-      viewBox: '150 25 400 450',
-      preserveAspectRatio: 'xMidYMid meet',
-      className: 'border rounded-lg svg-shadow w-full max-w-[600px] h-auto',
-      style: { backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' },
-      onMouseDown: handleMouseDown,
-      onMouseMove: handleMouseMove,
-      onMouseUp: handleMouseUp,
-      onTouchStart: handleMouseDown,
-      onTouchMove: handleMouseMove,
-      onTouchEnd: handleMouseUp
-    },
-      h('defs', null,
-        h('marker', {
-          id: 'arrow',
-          markerWidth: '10',
-          markerHeight: '10',
-          refX: '8',
-          refY: '3',
-          orient: 'auto'
-        }, h('path', { d: 'M0,0 L0,6 L9,3 Z', fill: 'black' }))
+  const resetPositions = () => {
+    setPositions(initialPositions);
+    setLines([]);
+    setDrawing(false);
+    setCurrentLine(null);
+    setIsSolidMode(false);
+    setIsDottedMode(false);
+  };
+
+  return h('div', { className: 'container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4 min-h-[600px]' },
+    h('div', { className: 'w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar' },
+      h('div', { className: 'text-center' },
+        h('h1', { className: 'text-xl md:text-2xl font-bold title-highlight' }, 'FieldCommand'),
+        h('p', { className: 'text-sm text-gray-600 mt-1' }, 'Baseball Defense Planner'),
+        h('p', { className: 'text-xs text-gray-500 mt-1' }, 'Plan Winning Defensive Strategies')
       ),
-      h('path', {
-        d: 'M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z',
-        fill: 'burlywood'
-      }),
-      h('path', {
-        d: 'M 350 425 L 250 325 L 350 225 L 450 325 Z',
-        fill: 'rgba(0, 128, 0, 0.8)'
-      }),
-      h('circle', { cx: '350', cy: '325', r: '20', fill: 'burlywood' }),
-      h('rect', { x: '340', y: '320', width: '20', height: '5', fill: 'white' }),
-      h('path', { d: 'M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z', fill: 'white' }),
-      h('rect', { x: '240', y: '315', width: '15', height: '15', fill: 'white', transform: 'rotate(45 250 325)' }),
-      h('rect', { x: '340', y: '215', width: '15', height: '15', fill: 'white', transform: 'rotate(45 350 225)' }),
-      h('rect', { x: '440', y: '315', width: '15', height: '15', fill: 'white', transform: 'rotate(45 450 325)' }),
-      h('line', { x1: '350', y1: '425', x2: '250', y2: '325', stroke: 'white', strokeWidth: '2' }),
-      h('line', { x1: '250', y1: '325', x2: '350', y2: '225', stroke: 'white', strokeWidth: '2' }),
-      h('line', { x1: '350', y1: '225', x2: '450', y2: '325', stroke: 'white', strokeWidth: '2' }),
-      h('line', { x1: '450', y1: '325', x2: '350', y2: '425', stroke: 'white', strokeWidth: '2' }),
-      lines.map((line, index) => h('g', { key: index },
-        h('line', {
-          x1: line.start.x,
-          y1: line.start.y,
-          x2: line.end.x,
-          y2: line.end.y,
-          stroke: 'black',
-          strokeWidth: '2',
-          strokeDasharray: line.type === 'dotted' ? '5,5' : 'none',
-          markerEnd: 'url(#arrow)'
-        })
-      )),
-      currentLine && h('g', null,
-        h('line', {
-          x1: currentLine.start.x,
-          y1: currentLine.start.y,
-          x2: currentLine.end.x,
-          y2: currentLine.end.y,
-          stroke: 'black',
-          strokeWidth: '2',
-          strokeDasharray: currentLine.type === 'dotted' ? '5,5' : 'none',
-          markerEnd: 'url(#arrow)'
-        })
-      ),
-      Object.entries(positions).map(([id, { x, y, label }]) => h(DraggableMarker, {
-        key: id,
-        id: id,
-        x: x,
-        y: y,
-        label: label,
-        color: id === 'baseball' ? 'white' : id.includes('runner') ? 'black' : 'red',
-        onDrag: handleDrag
-      }))
-    ),
-    isPremium && h('div', { className: 'text-center mt-4' },
+      h('button', {
+        onClick: resetPositions,
+        className: 'bg-gray-600 text-white px-4 py-3 rounded-lg text-base hover:bg-gray-700 transition'
+      }, 'Reset Play'),
       h('button', {
         onClick: toggleSolidMode,
-        className: `px-4 py-2 rounded-lg ${isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700`
-      }, 'Solid Line'),
-      ' ',
+        className: `px-4 py-3 rounded-lg text-base ${isPremium && isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} ${!isPremium ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'} transition`
+      }, 'Solid Line', isPremium ? '' : ' (Premium)'),
       h('button', {
         onClick: toggleDottedMode,
-        className: `px-4 py-2 rounded-lg ${isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700`
-      }, 'Dotted Line')
+        className: `px-4 py-3 rounded-lg text-base ${isPremium && isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} ${!isPremium ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'} transition`
+      }, 'Dotted Line', isPremium ? '' : ' (Premium)'),
+      !isPremium && h('button', {
+        onClick: () => setIsPremium(true), // Mock premium for now
+        className: 'bg-blue-600 text-white px-4 py-3 rounded-lg text-base hover:bg-blue-700 transition'
+      }, 'Go Premium')
+    ),
+    h('div', { className: 'flex-1 flex justify-center w-full' },
+      h('svg', {
+        width: '100%',
+        height: '100%',
+        viewBox: '150 25 400 450',
+        preserveAspectRatio: 'xMidYMid meet',
+        className: 'border rounded-lg svg-shadow w-full max-w-[600px] h-auto',
+        style: { backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' },
+        onMouseDown: handleMouseDown,
+        onMouseMove: handleMouseMove,
+        onMouseUp: handleMouseUp,
+        onTouchStart: handleMouseDown,
+        onTouchMove: handleMouseMove,
+        onTouchEnd: handleMouseUp
+      },
+        h('defs', null,
+          h('marker', {
+            id: 'arrow',
+            markerWidth: '10',
+            markerHeight: '10',
+            refX: '8',
+            refY: '3',
+            orient: 'auto'
+          }, h('path', { d: 'M0,0 L0,6 L9,3 Z', fill: 'black' }))
+        ),
+        h('path', {
+          d: 'M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z',
+          fill: 'burlywood'
+        }),
+        h('path', {
+          d: 'M 350 425 L 250 325 L 350 225 L 450 325 Z',
+          fill: 'rgba(0, 128, 0, 0.8)'
+        }),
+        h('circle', { cx: '350', cy: '325', r: '20', fill: 'burlywood' }),
+        h('rect', { x: '340', y: '320', width: '20', height: '5', fill: 'white' }),
+        h('path', { d: 'M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z', fill: 'white' }),
+        h('rect', { x: '240', y: '315', width: '15', height: '15', fill: 'white', transform: 'rotate(45 250 325)' }),
+        h('rect', { x: '340', y: '215', width: '15', height: '15', fill: 'white', transform: 'rotate(45 350 225)' }),
+        h('rect', { x: '440', y: '315', width: '15', height: '15', fill: 'white', transform: 'rotate(45 450 325)' }),
+        h('line', { x1: '350', y1: '425', x2: '250', y2: '325', stroke: 'white', strokeWidth: '2' }),
+        h('line', { x1: '250', y1: '325', x2: '350', y2: '225', stroke: 'white', strokeWidth: '2' }),
+        h('line', { x1: '350', y1: '225', x2: '450', y2: '325', stroke: 'white', strokeWidth: '2' }),
+        h('line', { x1: '450', y1: '325', x2: '350', y2: '425', stroke: 'white', strokeWidth: '2' }),
+        lines.map((line, index) => h('g', { key: index },
+          h('line', {
+            x1: line.start.x,
+            y1: line.start.y,
+            x2: line.end.x,
+            y2: line.end.y,
+            stroke: 'black',
+            strokeWidth: '2',
+            strokeDasharray: line.type === 'dotted' ? '5,5' : 'none',
+            markerEnd: 'url(#arrow)'
+          })
+        )),
+        currentLine && h('g', null,
+          h('line', {
+            x1: currentLine.start.x,
+            y1: currentLine.start.y,
+            x2: currentLine.end.x,
+            y2: currentLine.end.y,
+            stroke: 'black',
+            strokeWidth: '2',
+            strokeDasharray: currentLine.type === 'dotted' ? '5,5' : 'none',
+            markerEnd: 'url(#arrow)'
+          })
+        ),
+        Object.entries(positions).map(([id, { x, y, label }]) => h(DraggableMarker, {
+          key: id,
+          id: id,
+          x: x,
+          y: y,
+          label: label,
+          color: id === 'baseball' ? 'white' : id.includes('runner') ? 'black' : 'red',
+          onDrag: handleDrag
+        }))
+      )
     ),
     error && h('div', { className: 'error-message text-center mt-2' }, error)
   );

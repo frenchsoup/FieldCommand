@@ -26,6 +26,11 @@ body {
     filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.1));
 }
 
+.sidebar {
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
 .error-message {
     color: #e53e3e;
     font-size: 0.875rem;
