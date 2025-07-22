@@ -1,67 +1,110 @@
 const { h, Component } = window.preact;
 const { useState, useEffect } = window.preactHooks;
 
-// Load saved positions from session storage or default
-const loadPositions = () => {
-  try {
-    const saved = sessionStorage.getItem('fieldPositions');
-    return saved ? JSON.parse(saved) : {
-      marker: { x: 50, y: 50 },
-      pitcher: { x: 400, y: 100 },
-      firstBase: { x: 700, y: 200 },
-      secondBase: { x: 400, y: 300 },
-      thirdBase: { x: 100, y: 200 },
-      shortstop: { x: 300, y: 250 },
-      leftField: { x: 100, y: 350 },
-      centerField: { x: 400, y: 350 },
-      rightField: { x: 700, y: 350 },
-      runner1: { x: 600, y: 200 },
-      runner2: { x: 500, y: 300 },
-      ball: { x: 450, y: 150 },
-    };
-  } catch (e) {
-    console.error('Failed to load positions:', e);
-    return {
-      marker: { x: 50, y: 50 },
-      pitcher: { x: 400, y: 100 },
-      firstBase: { x: 700, y: 200 },
-      secondBase: { x: 400, y: 300 },
-      thirdBase: { x: 100, y: 200 },
-      shortstop: { x: 300, y: 250 },
-      leftField: { x: 100, y: 350 },
-      centerField: { x: 400, y: 350 },
-      rightField: { x: 700, y: 350 },
-      runner1: { x: 600, y: 200 },
-      runner2: { x: 500, y: 300 },
-      ball: { x: 450, y: 150 },
-    };
-  }
+const initialPositions = {
+  pitcher: { x: 350, y: 308, label: 'P' },
+  catcher: { x: 350, y: 455, label: 'C' },
+  first: { x: 450, y: 275, label: '1B' },
+  second: { x: 400, y: 205, label: '2B' },
+  third: { x: 250, y: 275, label: '3B' },
+  shortstop: { x: 300, y: 205, label: 'SS' },
+  left: { x: 225, y: 125, label: 'LF' },
+  center: { x: 350, y: 75, label: 'CF' },
+  right: { x: 475, y: 125, label: 'RF' },
+  baseball: { x: 450, y: 410, label: '⚾' },
+  runner1: { x: 485, y: 410, label: 'BR' },
+  runner2: { x: 520, y: 410, label: 'BR' },
+  runner3: { x: 485, y: 445, label: 'BR' },
+  runner4: { x: 520, y: 445, label: 'BR' }
 };
 
-const DraggableElement = ({ id, x, y, onDrag, color }) => {
-  return h('div', {
-    style: {
-      position: 'absolute',
-      left: `${x}px`,
-      top: `${y}px`,
-      width: '15px',
-      height: '15px',
-      background: color || 'red',
-      borderRadius: '50%',
-      cursor: 'move',
-    },
-    onMouseDown: onDrag,
-  });
-};
+function DraggableMarker({ id, x, y, label, color, onDrag }) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const getClientPosition = (e) => {
+    const isTouch = e.type.startsWith('touch');
+    return {
+      x: isTouch ? e.touches[0].clientX : e.clientX,
+      y: isTouch ? e.touches[0].clientY : e.clientY
+    };
+  };
+
+  const handleStart = (e) => {
+    setIsDragging(true);
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleMove = (e) => {
+    if (isDragging) {
+      const { x, y } = getClientPosition(e);
+      const svg = document.querySelector('svg');
+      const pt = svg.createSVGPoint();
+      pt.x = x;
+      pt.y = y;
+      const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
+      onDrag(id, transformed.x, transformed.y);
+      e.preventDefault();
+    }
+  };
+
+  const handleEnd = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMove);
+      document.addEventListener('mouseup', handleEnd);
+      document.addEventListener('touchmove', handleMove, { passive: false });
+      document.addEventListener('touchend', handleEnd);
+    }
+    return () => {
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener('touchend', handleEnd);
+    };
+  }, [isDragging, handleMove, handleEnd]);
+
+  return h('g', {
+    onMouseDown: handleStart,
+    onTouchStart: handleStart,
+    className: 'cursor-move touch-none',
+    tabIndex: '0',
+    role: 'button',
+    'aria-label': `${label} marker at position ${x},${y}`
+  },
+    h('circle', {
+      cx: x,
+      cy: y,
+      r: id === 'baseball' ? 10 : 15,
+      fill: color,
+      stroke: 'white',
+      strokeWidth: '2'
+    }),
+    label && h('text', {
+      x: x,
+      y: y + (id === 'baseball' ? 4 : 5),
+      textAnchor: 'middle',
+      fill: 'white',
+      fontSize: id === 'baseball' ? 14 : 12
+    }, label)
+  );
+}
 
 const BaseballField = ({ setError }) => {
-  const [positions, setPositions] = useState(loadPositions());
-  const [error, setLocalError] = useState(null);
-  const [isPremium, setIsPremium] = useState(false);
+  const [positions, setPositions] = useState(() => {
+    const saved = sessionStorage.getItem('fieldPositions');
+    return saved ? JSON.parse(saved) : initialPositions;
+  });
+  const [isPremium, setIsPremium] = useState(sessionStorage.getItem('isPremium') === 'true');
   const [lines, setLines] = useState([]);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [drawStart, setDrawStart] = useState(null);
-  const [drawStyle, setDrawStyle] = useState('solid'); // 'solid' or 'dotted'
+  const [currentLine, setCurrentLine] = useState(null);
+  const [drawing, setDrawing] = useState(false);
+  const [isSolidMode, setIsSolidMode] = useState(false);
+  const [isDottedMode, setIsDottedMode] = useState(false);
+  const [error, setLocalError] = useState(null);
 
   useEffect(() => {
     setError(error);
@@ -76,92 +119,170 @@ const BaseballField = ({ setError }) => {
     }
   }, [positions]);
 
-  useEffect(() => {
-    const checkPremium = () => setTimeout(() => setIsPremium(true), 1000);
-    checkPremium();
-  }, []);
+  const handleDrag = (id, newX, newY) => {
+    setPositions(prev => ({
+      ...prev,
+      [id]: { ...prev[id], x: newX, y: newY }
+    }));
+  };
 
-  const handleDrag = (id, e) => {
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startPos = positions[id];
+  const handleMouseDown = (e) => {
+    if (isPremium && (isSolidMode || isDottedMode)) {
+      const svg = e.currentTarget;
+      const { x, y } = getClientPosition(e);
+      const pt = svg.createSVGPoint();
+      pt.x = x;
+      pt.y = y;
+      const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
+      setDrawing(true);
+      setCurrentLine({
+        start: { x: transformed.x, y: transformed.y },
+        end: { x: transformed.x, y: transformed.y },
+        type: isSolidMode ? 'solid' : 'dotted'
+      });
+      e.preventDefault();
+    }
+  };
 
-    const onMouseMove = (moveEvent) => {
-      const dx = moveEvent.clientX - startX;
-      const dy = moveEvent.clientY - startY;
-      setPositions(prev => ({
+  const handleMouseMove = (e) => {
+    if (drawing) {
+      const svg = document.querySelector('svg');
+      const { x, y } = getClientPosition(e);
+      const pt = svg.createSVGPoint();
+      pt.x = x;
+      pt.y = y;
+      const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
+      setCurrentLine(prev => ({
         ...prev,
-        [id]: { x: startPos.x + dx, y: startPos.y + dy }
+        end: { x: transformed.x, y: transformed.y }
       }));
-    };
-
-    const onMouseUp = () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  };
-
-  const handleDrawStart = (e) => {
-    if (isPremium) {
-      setIsDrawing(true);
-      setDrawStart({ x: e.clientX - 400, y: e.clientY - 100 }); // Offset to field center
+      e.preventDefault();
     }
   };
 
-  const handleDrawMove = (e) => {
-    if (isDrawing && isPremium) {
-      const end = { x: e.clientX - 400, y: e.clientY - 100 };
-      setLines(prev => [...prev, { start: drawStart, end, style: drawStyle }]);
+  const handleMouseUp = () => {
+    if (drawing && currentLine) {
+      setLines(prev => [...prev, currentLine]);
+      setDrawing(false);
+      setCurrentLine(null);
     }
   };
 
-  const handleDrawEnd = () => {
-    setIsDrawing(false);
-    setDrawStart(null);
+  const getClientPosition = (e) => {
+    const isTouch = e.type.startsWith('touch');
+    return {
+      x: isTouch ? e.touches[0].clientX : e.clientX,
+      y: isTouch ? e.touches[0].clientY : e.clientY
+    };
   };
 
-  return h('div', null,
-    h('div', {
-      style: { position: 'relative', width: '800px', height: '400px', border: '1px solid black', margin: '20px auto' },
-      onMouseDown: handleDrawStart,
-      onMouseMove: handleDrawMove,
-      onMouseUp: handleDrawEnd,
-      onMouseLeave: handleDrawEnd
+  const toggleSolidMode = () => {
+    if (!isPremium) return;
+    setIsSolidMode(prev => {
+      const newState = !prev;
+      if (newState) setIsDottedMode(false);
+      return newState;
+    });
+  };
+
+  const toggleDottedMode = () => {
+    if (!isPremium) return;
+    setIsDottedMode(prev => {
+      const newState = !prev;
+      if (newState) setIsSolidMode(false);
+      return newState;
+    });
+  };
+
+  return h('div', { className: 'container p-4 md:p-6 w-full max-w-[1200px] flex justify-center' },
+    h('svg', {
+      width: '100%',
+      height: '100%',
+      viewBox: '150 25 400 450',
+      preserveAspectRatio: 'xMidYMid meet',
+      className: 'border rounded-lg svg-shadow w-full max-w-[600px] h-auto',
+      style: { backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' },
+      onMouseDown: handleMouseDown,
+      onMouseMove: handleMouseMove,
+      onMouseUp: handleMouseUp,
+      onTouchStart: handleMouseDown,
+      onTouchMove: handleMouseMove,
+      onTouchEnd: handleMouseUp
     },
-      // Field positions
-      h(DraggableElement, { id: 'pitcher', x: positions.pitcher.x, y: positions.pitcher.y, onDrag: (e) => handleDrag('pitcher', e), color: 'blue' }),
-      h(DraggableElement, { id: 'firstBase', x: positions.firstBase.x, y: positions.firstBase.y, onDrag: (e) => handleDrag('firstBase', e), color: 'blue' }),
-      h(DraggableElement, { id: 'secondBase', x: positions.secondBase.x, y: positions.secondBase.y, onDrag: (e) => handleDrag('secondBase', e), color: 'blue' }),
-      h(DraggableElement, { id: 'thirdBase', x: positions.thirdBase.x, y: positions.thirdBase.y, onDrag: (e) => handleDrag('thirdBase', e), color: 'blue' }),
-      h(DraggableElement, { id: 'shortstop', x: positions.shortstop.x, y: positions.shortstop.y, onDrag: (e) => handleDrag('shortstop', e), color: 'blue' }),
-      h(DraggableElement, { id: 'leftField', x: positions.leftField.x, y: positions.leftField.y, onDrag: (e) => handleDrag('leftField', e), color: 'blue' }),
-      h(DraggableElement, { id: 'centerField', x: positions.centerField.x, y: positions.centerField.y, onDrag: (e) => handleDrag('centerField', e), color: 'blue' }),
-      h(DraggableElement, { id: 'rightField', x: positions.rightField.x, y: positions.rightField.y, onDrag: (e) => handleDrag('rightField', e), color: 'blue' }),
-      // Runners
-      h(DraggableElement, { id: 'runner1', x: positions.runner1.x, y: positions.runner1.y, onDrag: (e) => handleDrag('runner1', e), color: 'green' }),
-      h(DraggableElement, { id: 'runner2', x: positions.runner2.x, y: positions.runner2.y, onDrag: (e) => handleDrag('runner2', e), color: 'green' }),
-      // Ball
-      h(DraggableElement, { id: 'ball', x: positions.ball.x, y: positions.ball.y, onDrag: (e) => handleDrag('ball', e), color: 'yellow' }),
-      // Draw lines
-      lines.map((line, index) => h('div', {
-        key: index,
-        style: {
-          position: 'absolute',
-          left: `${400 + line.start.x}px`,
-          top: `${100 + line.start.y}px`,
-          width: `${Math.sqrt((line.end.x - line.start.x) ** 2 + (line.end.y - line.start.y) ** 2)}px`,
-          height: '2px',
-          background: line.style === 'dotted' ? 'black dotted' : 'black',
-          transform: `rotate(${Math.atan2(line.end.y - line.start.y, line.end.x - line.start.x) * 180 / Math.PI}deg)`,
-          transformOrigin: '0 0',
-        }
+      h('defs', null,
+        h('marker', {
+          id: 'arrow',
+          markerWidth: '10',
+          markerHeight: '10',
+          refX: '8',
+          refY: '3',
+          orient: 'auto'
+        }, h('path', { d: 'M0,0 L0,6 L9,3 Z', fill: 'black' }))
+      ),
+      h('path', {
+        d: 'M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z',
+        fill: 'burlywood'
+      }),
+      h('path', {
+        d: 'M 350 425 L 250 325 L 350 225 L 450 325 Z',
+        fill: 'rgba(0, 128, 0, 0.8)'
+      }),
+      h('circle', { cx: '350', cy: '325', r: '20', fill: 'burlywood' }),
+      h('rect', { x: '340', y: '320', width: '20', height: '5', fill: 'white' }),
+      h('path', { d: 'M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z', fill: 'white' }),
+      h('rect', { x: '240', y: '315', width: '15', height: '15', fill: 'white', transform: 'rotate(45 250 325)' }),
+      h('rect', { x: '340', y: '215', width: '15', height: '15', fill: 'white', transform: 'rotate(45 350 225)' }),
+      h('rect', { x: '440', y: '315', width: '15', height: '15', fill: 'white', transform: 'rotate(45 450 325)' }),
+      h('line', { x1: '350', y1: '425', x2: '250', y2: '325', stroke: 'white', strokeWidth: '2' }),
+      h('line', { x1: '250', y1: '325', x2: '350', y2: '225', stroke: 'white', strokeWidth: '2' }),
+      h('line', { x1: '350', y1: '225', x2: '450', y2: '325', stroke: 'white', strokeWidth: '2' }),
+      h('line', { x1: '450', y1: '325', x2: '350', y2: '425', stroke: 'white', strokeWidth: '2' }),
+      lines.map((line, index) => h('g', { key: index },
+        h('line', {
+          x1: line.start.x,
+          y1: line.start.y,
+          x2: line.end.x,
+          y2: line.end.y,
+          stroke: 'black',
+          strokeWidth: '2',
+          strokeDasharray: line.type === 'dotted' ? '5,5' : 'none',
+          markerEnd: 'url(#arrow)'
+        })
+      )),
+      currentLine && h('g', null,
+        h('line', {
+          x1: currentLine.start.x,
+          y1: currentLine.start.y,
+          x2: currentLine.end.x,
+          y2: currentLine.end.y,
+          stroke: 'black',
+          strokeWidth: '2',
+          strokeDasharray: currentLine.type === 'dotted' ? '5,5' : 'none',
+          markerEnd: 'url(#arrow)'
+        })
+      ),
+      Object.entries(positions).map(([id, { x, y, label }]) => h(DraggableMarker, {
+        key: id,
+        id: id,
+        x: x,
+        y: y,
+        label: label,
+        color: id === 'baseball' ? 'white' : id.includes('runner') ? 'black' : 'red',
+        onDrag: handleDrag
       }))
     ),
-    isPremium && h('div', { style: { color: '#10b981', marginTop: '10px', textAlign: 'center' } }, 'Premium: Toggle lines (solid/dotted) - Coming Soon'),
-    error && h('div', { style: { color: '#e53e3e', marginTop: '10px', textAlign: 'center' }, className: 'error-message' }, error)
+    isPremium && h('div', { className: 'text-center mt-4' },
+      h('button', {
+        onClick: toggleSolidMode,
+        className: `px-4 py-2 rounded-lg ${isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700`
+      }, 'Solid Line'),
+      ' ',
+      h('button', {
+        onClick: toggleDottedMode,
+        className: `px-4 py-2 rounded-lg ${isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700`
+      }, 'Dotted Line')
+    ),
+    error && h('div', { className: 'error-message text-center mt-2' }, error)
   );
 };
 
