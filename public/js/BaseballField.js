@@ -7,7 +7,7 @@ const loadPosition = () => {
     const saved = sessionStorage.getItem('markerPosition');
     return saved ? JSON.parse(saved) : { x: 50, y: 50 };
   } catch (e) {
-    console.error('Failed to load position from session storage:', e);
+    console.error('Failed to load position:', e);
     return { x: 50, y: 50 };
   }
 };
@@ -31,10 +31,10 @@ class DraggableMarker extends Component {
   }
 }
 
-const BaseballField = ({ app, auth, stripePromise, setError }) => {
+const BaseballField = ({ setError }) => {
   const [markerPosition, setMarkerPosition] = useState(loadPosition());
   const [error, setLocalError] = useState(null);
-  const [isPremium, setIsPremium] = useState(false);
+  const [isPremium, setIsPremium] = useState(false); // Placeholder
 
   useEffect(() => {
     setError(error);
@@ -44,24 +44,10 @@ const BaseballField = ({ app, auth, stripePromise, setError }) => {
     try {
       sessionStorage.setItem('markerPosition', JSON.stringify(markerPosition));
     } catch (e) {
-      console.error('Failed to save position to session storage:', e);
+      console.error('Failed to save position:', e);
       setLocalError('Failed to save position');
     }
-
-    const checkPremiumStatus = async () => {
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const premium = await new Promise(resolve => setTimeout(() => resolve(true), 1000)); // Mock
-          setIsPremium(premium);
-        }
-      } catch (err) {
-        console.error('Premium check failed:', err);
-        setLocalError('Failed to check premium status');
-      }
-    };
-    checkPremiumStatus();
-  }, [markerPosition, auth, setError]);
+  }, [markerPosition]);
 
   const handleDrag = (e) => {
     const startX = e.clientX;
@@ -83,12 +69,17 @@ const BaseballField = ({ app, auth, stripePromise, setError }) => {
     document.addEventListener('mouseup', onMouseUp);
   };
 
+  useEffect(() => {
+    // Mock premium check (replace with Firebase auth later)
+    const checkPremium = () => setTimeout(() => setIsPremium(true), 1000);
+    checkPremium();
+  }, []);
+
   return h('div', null,
-    h('h1', { className: 'title-highlight' }, 'FieldCommand'), // Added header
     h('div', { style: { position: 'relative', width: '800px', height: '400px', border: '1px solid black' } },
       h(DraggableMarker, { x: markerPosition.x, y: markerPosition.y, onDrag: handleDrag })
     ),
-    isPremium && h('div', { style: { color: '#10b981', marginTop: '10px' }, className: 'success-message' }, 'Premium User'),
+    isPremium && h('div', { style: { color: '#10b981', marginTop: '10px' }, className: 'success-message' }, 'Premium Features Unlocked (Upgrade for More)'),
     error && h('div', { style: { color: '#e53e3e', marginTop: '10px' }, className: 'error-message' }, error)
   );
 };
