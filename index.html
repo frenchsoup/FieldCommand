@@ -56,19 +56,6 @@
             margin-top: 0.25rem;
             margin-bottom: 1rem;
         }
-        .loading-spinner {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #3498db;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
         input, button, textarea {
             font-size: 16px;
         }
@@ -89,24 +76,13 @@
             border-top-right-radius: 8px;
             border-bottom-right-radius: 8px;
         }
-        .modal {
-            background: rgba(0, 0, 0, 0.5);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal-content {
+        .email-gate {
             background: white;
             border-radius: 8px;
             max-width: 400px;
             text-align: center;
             padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
         .saved-plays-list {
             max-height: 200px;
@@ -255,11 +231,10 @@
             const [drawing, setDrawing] = useState(false);
             const [currentLine, setCurrentLine] = useState(null);
             const [lines, setLines] = useState([]);
-            const [showEmailModal, setShowEmailModal] = useState(!localStorage.getItem('fieldCommandUnlocked'));
+            const [showEmailGate, setShowEmailGate] = useState(!localStorage.getItem('fieldCommandUnlocked'));
             const [email, setEmail] = useState('');
             const [emailError, setEmailError] = useState('');
             const [savedPlays, setSavedPlays] = useState([]);
-            const [showSaveModal, setShowSaveModal] = useState(false);
             const [playName, setPlayName] = useState('');
 
             const getClientPosition = (e) => {
@@ -276,7 +251,7 @@
                     return;
                 }
                 localStorage.setItem('fieldCommandUnlocked', 'true');
-                setShowEmailModal(false);
+                setShowEmailGate(false);
                 setEmailError('');
                 gtag('event', 'submit_email', {
                     'event_category': 'Engagement',
@@ -300,7 +275,6 @@
                     ...prev,
                     { name: playName, positions, lines }
                 ]);
-                setShowSaveModal(false);
                 setPlayName('');
             };
 
@@ -409,30 +383,28 @@
                             Share Feedback on Reddit
                         </a>
                     </div>
-                    {showEmailModal ? (
-                        <div className="modal">
-                            <div className="modal-content p-6">
-                                <h2 className="text-xl font-bold mb-4">Enter Your Email to Try FieldCommand</h2>
-                                <p className="text-gray-600 mb-4">Submit your email to access the app and help us improve it!</p>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="Enter your email"
-                                    className="border border-gray-300 p-3 rounded-lg text-base w-full focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
-                                    aria-label="Email input"
-                                />
-                                {emailError && (
-                                    <p className="error-message">{emailError}</p>
-                                )}
-                                <button
-                                    onClick={handleEmailSubmit}
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-                                    aria-label="Submit email to access app"
-                                >
-                                    Access FieldCommand
-                                </button>
-                            </div>
+                    {showEmailGate ? (
+                        <div className="email-gate mx-auto">
+                            <h2 className="text-xl font-bold mb-4">Enter Your Email to Try FieldCommand</h2>
+                            <p className="text-gray-600 mb-4">Submit your email to access the app and help us improve it!</p>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter your email"
+                                className="border border-gray-300 p-3 rounded-lg text-base w-full focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
+                                aria-label="Email input"
+                            />
+                            {emailError && (
+                                <p className="error-message">{emailError}</p>
+                            )}
+                            <button
+                                onClick={handleEmailSubmit}
+                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                                aria-label="Submit email to access app"
+                            >
+                                Access FieldCommand
+                            </button>
                         </div>
                     ) : (
                         <div className="container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4 min-h-[600px]">
@@ -441,31 +413,6 @@
                                     <h1 className="text-xl md:text-2xl font-bold title-highlight">FieldCommand</h1>
                                     <p className="text-sm text-gray-600 mt-1">Baseball Defense Planner</p>
                                     <p className="text-xs text-gray-500 mt-1">Plan Winning Defensive Strategies</p>
-                                </div>
-                                <button 
-                                    onClick={() => setShowSaveModal(true)}
-                                    className="bg-green-600 text-white px-4 py-3 rounded-lg text-base hover:bg-green-700 transition"
-                                    aria-label="Save current play"
-                                >
-                                    Save Play
-                                </button>
-                                <div className="saved-plays-list">
-                                    <h3 className="text-sm font-bold mb-2">Saved Plays</h3>
-                                    {savedPlays.length === 0 ? (
-                                        <p className="text-sm text-gray-500">No plays saved yet.</p>
-                                    ) : (
-                                        savedPlays.map((play, index) => (
-                                            <div
-                                                key={index}
-                                                className="saved-play-item"
-                                                onClick={() => loadPlay(play)}
-                                                role="button"
-                                                aria-label={`Load play ${play.name}`}
-                                            >
-                                                {play.name}
-                                            </div>
-                                        ))
-                                    )}
                                 </div>
                                 <button 
                                     onClick={resetPositions}
@@ -505,7 +452,6 @@
                                     </button>
                                 </div>
                             </div>
-
                             <div className="flex-1 flex justify-center w-full">
                                 <svg 
                                     width="100%" 
@@ -595,35 +541,42 @@
                                     ))}
                                 </svg>
                             </div>
-                        </div>
-                    )}
-                    {showSaveModal && (
-                        <div className="modal">
-                            <div className="modal-content p-6">
-                                <h2 className="text-xl font-bold mb-4">Save Play</h2>
+                            <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
+                                <div className="text-center">
+                                    <h3 className="text-sm font-bold">Save Plays</h3>
+                                </div>
                                 <input
                                     type="text"
                                     value={playName}
                                     onChange={(e) => setPlayName(e.target.value)}
                                     placeholder="Enter play name"
-                                    className="border border-gray-300 p-3 rounded-lg text-base w-full focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
+                                    className="border border-gray-300 p-3 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-green-500"
                                     aria-label="Play name input"
                                 />
-                                <div className="flex justify-center gap-4">
-                                    <button
-                                        onClick={savePlay}
-                                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-                                        aria-label="Save play"
-                                    >
-                                        Save
-                                    </button>
-                                    <button
-                                        onClick={() => setShowSaveModal(false)}
-                                        className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-                                        aria-label="Cancel save play"
-                                    >
-                                        Cancel
-                                    </button>
+                                <button
+                                    onClick={savePlay}
+                                    className="bg-green-600 text-white px-4 py-3 rounded-lg text-base hover:bg-green-700 transition"
+                                    aria-label="Save current play"
+                                >
+                                    Save
+                                </button>
+                                <div className="saved-plays-list">
+                                    <h3 className="text-sm font-bold mb-2">Saved Plays</h3>
+                                    {savedPlays.length === 0 ? (
+                                        <p className="text-sm text-gray-500">No plays saved yet.</p>
+                                    ) : (
+                                        savedPlays.map((play, index) => (
+                                            <div
+                                                key={index}
+                                                className="saved-play-item"
+                                                onClick={() => loadPlay(play)}
+                                                role="button"
+                                                aria-label={`Load play ${play.name}`}
+                                            >
+                                                {play.name}
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </div>
                         </div>
