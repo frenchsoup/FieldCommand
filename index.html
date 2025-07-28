@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="FieldCommand: Plan baseball defense strategies with ease. Position players, draw plays, and share your strategies.">
+    <meta name="description" content="FieldCommand: Plan baseball defense strategies with ease. Position players and draw plays on any device.">
     <meta name="keywords" content="baseball, defense planner, coaching tool, FieldCommand">
     <meta property="og:title" content="⚾ FieldCommand: Baseball Defense Planner">
-    <meta property="og:description" content="Plan and share baseball plays with ease! ⚾ Draw strategies and position players on any device.">
+    <meta property="og:description" content="Plan baseball plays with ease! ⚾ Draw strategies and position players on any device.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://username.github.io/fieldcommand">
+    <meta property="og:url" content="https://fieldcommand.netlify.app/">
     <title>FieldCommand: Baseball Defense Planner</title>
-    <link rel="preconnect" href="https://js.stripe.com">
     <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TLMQJ07R8K"></script>
@@ -20,7 +19,6 @@
       gtag('js', new Date());
       gtag('config', 'G-TLMQJ07R8K');
     </script>
-    <script src="https://js.stripe.com/v3/"></script>
     <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
@@ -57,7 +55,6 @@
             font-size: 0.875rem;
             margin-top: 0.25rem;
             margin-bottom: 1rem;
-            display: none;
         }
         .loading-spinner {
             border: 2px solid #f3f3f3;
@@ -111,24 +108,22 @@
             text-align: center;
             padding: 1.5rem;
         }
-        .tooltip {
-            visibility: hidden;
-            background-color: #333;
-            color: white;
-            text-align: center;
-            border-radius: 4px;
+        .saved-plays-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
             padding: 8px;
-            position: absolute;
-            z-index: 10;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            max-width: 200px;
-            font-size: 14px;
-            white-space: pre-wrap;
         }
-        .tooltip-container:hover .tooltip {
-            visibility: visible;
+        .saved-play-item {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            background: #edf2f7;
+        }
+        .saved-play-item:hover {
+            background: #e2e8f0;
         }
         @media (max-width: 768px) {
             .container {
@@ -150,19 +145,6 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-
-        let stripe;
-        const stripePromise = new Promise((resolve) => {
-            const checkStripe = () => {
-                if (window.Stripe) {
-                    stripe = window.Stripe('pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5');
-                    resolve(stripe);
-                } else {
-                    setTimeout(checkStripe, 100);
-                }
-            };
-            checkStripe();
-        });
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -268,22 +250,17 @@
 
         function BaseballField() {
             const [positions, setPositions] = useState(initialPositions);
-            const [playName, setPlayName] = useState('');
-            const [savedPlays, setSavedPlays] = useState(JSON.parse(localStorage.getItem('savedPlays')) || []);
             const [isSolidMode, setIsSolidMode] = useState(false);
             const [isDottedMode, setIsDottedMode] = useState(false);
             const [drawing, setDrawing] = useState(false);
             const [currentLine, setCurrentLine] = useState(null);
             const [lines, setLines] = useState([]);
-            const [showPremiumModal, setShowPremiumModal] = useState(false);
-            const [showNotesModal, setShowNotesModal] = useState(false);
-            const [currentPlayIndex, setCurrentPlayIndex] = useState(null);
-            const [currentNotes, setCurrentNotes] = useState('');
-            const [isPremium, setIsPremium] = useState(localStorage.getItem('isPremium') === 'true');
-            const [showWelcomeModal, setShowWelcomeModal] = useState(!localStorage.getItem('fieldCommandUnlocked'));
-            const [isDemoMode, setIsDemoMode] = useState(false);
-            const [isLoading, setIsLoading] = useState(false);
-            const [errorMessage, setErrorMessage] = useState('');
+            const [showEmailModal, setShowEmailModal] = useState(!localStorage.getItem('fieldCommandUnlocked'));
+            const [email, setEmail] = useState('');
+            const [emailError, setEmailError] = useState('');
+            const [savedPlays, setSavedPlays] = useState([]);
+            const [showSaveModal, setShowSaveModal] = useState(false);
+            const [playName, setPlayName] = useState('');
 
             const getClientPosition = (e) => {
                 const isTouch = e.type.startsWith('touch');
@@ -293,17 +270,17 @@
                 };
             };
 
-            const handleTryNow = () => {
+            const handleEmailSubmit = () => {
+                if (!emailRegex.test(email)) {
+                    setEmailError('Please enter a valid email address.');
+                    return;
+                }
                 localStorage.setItem('fieldCommandUnlocked', 'true');
-                setShowWelcomeModal(false);
-                setIsDemoMode(true);
-                setTimeout(() => {
-                    setIsDemoMode(false);
-                    setShowPremiumModal(true);
-                }, 5 * 60 * 1000); // 5-minute demo
-                gtag('event', 'try_now', {
+                setShowEmailModal(false);
+                setEmailError('');
+                gtag('event', 'submit_email', {
                     'event_category': 'Engagement',
-                    'event_label': 'Try Now Click'
+                    'event_label': email
                 });
             };
 
@@ -315,49 +292,21 @@
             };
 
             const savePlay = () => {
-                if (!isPremium && !isDemoMode && savedPlays.length >= 1) {
-                    setShowPremiumModal(true);
+                if (!playName.trim()) {
+                    alert('Please enter a play name.');
                     return;
                 }
-                if (playName) {
-                    const newSavedPlays = [...savedPlays, { 
-                        name: playName, 
-                        positions: { ...positions }, 
-                        lines: [...lines], 
-                        notes: '' 
-                    }];
-                    setSavedPlays(newSavedPlays);
-                    localStorage.setItem('savedPlays', JSON.stringify(newSavedPlays));
-                    setPlayName('');
-                    if (newSavedPlays.length > 5) {
-                        alert('Warning: Local storage is limited. Consider upgrading to premium for cloud storage.');
-                    }
-                }
+                setSavedPlays(prev => [
+                    ...prev,
+                    { name: playName, positions, lines }
+                ]);
+                setShowSaveModal(false);
+                setPlayName('');
             };
 
             const loadPlay = (play) => {
                 setPositions(play.positions);
-                setLines(play.lines || []);
-                setPlayName(play.name);
-            };
-
-            const deletePlay = (index) => {
-                const newSavedPlays = savedPlays.filter((_, i) => i !== index);
-                setSavedPlays(newSavedPlays);
-                localStorage.setItem('savedPlays', JSON.stringify(newSavedPlays));
-                resetPositions();
-            };
-
-            const sharePlay = (play) => {
-                const playData = encodeURIComponent(JSON.stringify(play));
-                const shareUrl = `${window.location.origin}?play=${playData}`;
-                navigator.clipboard.writeText(shareUrl).then(() => {
-                    alert('Play URL copied to clipboard! Share it on Reddit or with your team.');
-                });
-                gtag('event', 'share_play', {
-                    'event_category': 'Engagement',
-                    'event_label': 'Share Play'
-                });
+                setLines(play.lines);
             };
 
             const resetPositions = () => {
@@ -367,14 +316,9 @@
                 setCurrentLine(null);
                 setIsSolidMode(false);
                 setIsDottedMode(false);
-                setPlayName('');
             };
 
             const toggleSolidMode = () => {
-                if (!isPremium && !isDemoMode) {
-                    setShowPremiumModal(true);
-                    return;
-                }
                 setIsSolidMode(prev => {
                     const newState = !prev;
                     if (newState) setIsDottedMode(false);
@@ -383,10 +327,6 @@
             };
 
             const toggleDottedMode = () => {
-                if (!isPremium && !isDemoMode) {
-                    setShowPremiumModal(true);
-                    return;
-                }
                 setIsDottedMode(prev => {
                     const newState = !prev;
                     if (newState) setIsSolidMode(false);
@@ -395,7 +335,7 @@
             };
 
             const handleMouseDown = (e) => {
-                if (!isPremium && !isDemoMode || (!isSolidMode && !isDottedMode)) return;
+                if (!isSolidMode && !isDottedMode) return;
 
                 const svg = e.currentTarget;
                 const { x, y } = getClientPosition(e);
@@ -450,79 +390,6 @@
                 setCurrentLine(null);
             };
 
-            const handleGoPremium = async (plan) => {
-                setIsLoading(true);
-                setErrorMessage('');
-                try {
-                    const stripeInstance = await stripePromise;
-                    let priceId, mode;
-                    if (plan === 'monthly') {
-                        priceId = 'price_1RBeSTB311TbF661Wzqqc3OW';
-                        mode = 'subscription';
-                    } else if (plan === 'annual') {
-                        priceId = 'price_1RBeT4B311TbF661BchpXFF1';
-                        mode = 'subscription';
-                    } else if (plan === 'onetime') {
-                        priceId = 'price_1RBoExB311TbF661pkuJDeP5';
-                        mode = 'payment';
-                    }
-                    const result = await stripeInstance.redirectToCheckout({
-                        lineItems: [{ price: priceId, quantity: 1 }],
-                        mode: mode,
-                        successUrl: window.location.href + '?premium_success=true',
-                        cancelUrl: window.location.href
-                    });
-                    if (result.error) {
-                        setErrorMessage(result.error.message);
-                    }
-                } catch (error) {
-                    setErrorMessage('Failed to connect to payment system. Please try again later.');
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-
-            const openNotesModal = (index) => {
-                if (!isPremium && !isDemoMode) {
-                    setShowPremiumModal(true);
-                    return;
-                }
-                setCurrentPlayIndex(index);
-                setCurrentNotes(savedPlays[index].notes || '');
-                setShowNotesModal(true);
-            };
-
-            const saveNotes = () => {
-                if (currentPlayIndex !== null) {
-                    const updatedPlays = [...savedPlays];
-                    updatedPlays[currentPlayIndex] = { ...updatedPlays[currentPlayIndex], notes: currentNotes };
-                    setSavedPlays(updatedPlays);
-                    localStorage.setItem('savedPlays', JSON.stringify(updatedPlays));
-                }
-                setShowNotesModal(false);
-                setCurrentPlayIndex(null);
-                setCurrentNotes('');
-            };
-
-            useEffect(() => {
-                if (window.location.search.includes('premium_success=true')) {
-                    localStorage.setItem('isPremium', 'true');
-                    setIsPremium(true);
-                    setShowWelcomeModal(false);
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
-                const urlParams = new URLSearchParams(window.location.search);
-                const playData = urlParams.get('play');
-                if (playData) {
-                    try {
-                        const play = JSON.parse(decodeURIComponent(playData));
-                        loadPlay(play);
-                    } catch (e) {
-                        console.error('Failed to load shared play:', e);
-                    }
-                }
-            }, []);
-
             return (
                 <div>
                     <div className="text-center mb-6">
@@ -530,27 +397,40 @@
                             Welcome to <span className="title-highlight">FieldCommand</span>
                         </h1>
                         <p className="text-base md:text-lg text-gray-600 mt-2">
-                            Plan winning baseball strategies in seconds! ⚾ Drag players, draw plays, and share with your team.
+                            Plan winning baseball strategies in seconds! ⚾ Drag players and draw plays.
                         </p>
                         <a 
                             href="https://reddit.com/r/baseballcoaching" 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="inline-block mt-4 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+                            aria-label="Share feedback on Reddit"
                         >
                             Share Feedback on Reddit
                         </a>
                     </div>
-                    {showWelcomeModal ? (
+                    {showEmailModal ? (
                         <div className="modal">
                             <div className="modal-content p-6">
-                                <h2 className="text-xl font-bold mb-4">Try FieldCommand Free!</h2>
-                                <p className="text-gray-600 mb-4">Create and save one play, or upgrade to premium for unlimited saves and advanced features.</p>
+                                <h2 className="text-xl font-bold mb-4">Enter Your Email to Try FieldCommand</h2>
+                                <p className="text-gray-600 mb-4">Submit your email to access the app and help us improve it!</p>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Enter your email"
+                                    className="border border-gray-300 p-3 rounded-lg text-base w-full focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
+                                    aria-label="Email input"
+                                />
+                                {emailError && (
+                                    <p className="error-message">{emailError}</p>
+                                )}
                                 <button
-                                    onClick={handleTryNow}
+                                    onClick={handleEmailSubmit}
                                     className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                                    aria-label="Submit email to access app"
                                 >
-                                    Try Now
+                                    Access FieldCommand
                                 </button>
                             </div>
                         </div>
@@ -562,21 +442,31 @@
                                     <p className="text-sm text-gray-600 mt-1">Baseball Defense Planner</p>
                                     <p className="text-xs text-gray-500 mt-1">Plan Winning Defensive Strategies</p>
                                 </div>
-                                <input 
-                                    type="text" 
-                                    value={playName}
-                                    onChange={(e) => setPlayName(e.target.value)}
-                                    placeholder="Enter play name"
-                                    className="border border-gray-300 p-3 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-green-500"
-                                    aria-label="Play name input"
-                                />
                                 <button 
-                                    onClick={savePlay}
-                                    className={`px-4 py-3 rounded-lg text-base ${isPremium || isDemoMode || savedPlays.length < 1 ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} transition`}
+                                    onClick={() => setShowSaveModal(true)}
+                                    className="bg-green-600 text-white px-4 py-3 rounded-lg text-base hover:bg-green-700 transition"
                                     aria-label="Save current play"
                                 >
-                                    Save Play {isPremium || isDemoMode ? '' : savedPlays.length < 1 ? '' : '(Premium)'}
+                                    Save Play
                                 </button>
+                                <div className="saved-plays-list">
+                                    <h3 className="text-sm font-bold mb-2">Saved Plays</h3>
+                                    {savedPlays.length === 0 ? (
+                                        <p className="text-sm text-gray-500">No plays saved yet.</p>
+                                    ) : (
+                                        savedPlays.map((play, index) => (
+                                            <div
+                                                key={index}
+                                                className="saved-play-item"
+                                                onClick={() => loadPlay(play)}
+                                                role="button"
+                                                aria-label={`Load play ${play.name}`}
+                                            >
+                                                {play.name}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                                 <button 
                                     onClick={resetPositions}
                                     className="bg-gray-600 text-white px-4 py-3 rounded-lg text-base hover:bg-gray-700 transition"
@@ -586,17 +476,17 @@
                                 </button>
                                 <button
                                     onClick={toggleSolidMode}
-                                    className={`px-4 py-3 rounded-lg text-base ${isPremium || isDemoMode ? (isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800') : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} hover:bg-green-700 hover:text-white transition`}
+                                    className={`px-4 py-3 rounded-lg text-base ${isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition`}
                                     aria-label="Toggle solid line drawing"
                                 >
-                                    Solid Line {isSolidMode ? '(On)' : '(Off)'} {isPremium || isDemoMode ? '' : '(Premium)'}
+                                    Solid Line {isSolidMode ? '(On)' : '(Off)'}
                                 </button>
                                 <button
                                     onClick={toggleDottedMode}
-                                    className={`px-4 py-3 rounded-lg text-base ${isPremium || isDemoMode ? (isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800') : 'bg-gray-400 text-gray-700 opacity-50 cursor-not-allowed'} hover:bg-green-700 hover:text-white transition`}
+                                    className={`px-4 py-3 rounded-lg text-base ${isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition`}
                                     aria-label="Toggle dotted line drawing"
                                 >
-                                    Dotted Line {isDottedMode ? '(On)' : '(Off)'} {isPremium || isDemoMode ? '' : '(Premium)'}
+                                    Dotted Line {isDottedMode ? '(On)' : '(Off)'}
                                 </button>
                                 <div className="split-button">
                                     <button
@@ -614,15 +504,6 @@
                                         Reset Lines
                                     </button>
                                 </div>
-                                {!isPremium && (
-                                    <button
-                                        onClick={() => setShowPremiumModal(true)}
-                                        className="bg-blue-600 text-white px-4 py-3 rounded-lg text-base hover:bg-blue-700 transition"
-                                        aria-label="Upgrade to premium"
-                                    >
-                                        Go Premium
-                                    </button>
-                                )}
                             </div>
 
                             <div className="flex-1 flex justify-center w-full">
@@ -632,7 +513,7 @@
                                     viewBox="150 25 400 450" 
                                     preserveAspectRatio="xMidYMid meet"
                                     className="border rounded-lg svg-shadow w-full max-w-[600px] h-auto" 
-                                    style={{ background: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAACqADAAQAAAABAAAACgAAAAD8qP0qAAAAHUlEQVQY02NgYGD4TyZGMjIy/H8YGBgY/j8YGBgAOq4B9FHyHyYAAAAASUVORK5CYII=") repeat, rgba(0, 128, 0, 0.8)', touchAction: 'none' }} 
+                                    style={{ backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' }} 
                                     onMouseDown={handleMouseDown}
                                     onMouseMove={handleMouseMove}
                                     onMouseUp={handleMouseUp}
@@ -714,126 +595,37 @@
                                     ))}
                                 </svg>
                             </div>
-
-                            <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
-                                <h2 className="text-lg font-semibold text-gray-800 text-center border-b border-gray-200 pb-2">Saved Plays</h2>
-                                <div className="flex-1 overflow-y-auto">
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {savedPlays.map((play, index) => (
-                                            <div key={index} className="flex items-center gap-2 relative tooltip-container">
-                                                <button 
-                                                    onClick={() => loadPlay(play)}
-                                                    className="flex-1 bg-blue-100 p-2 rounded-lg hover:bg-blue-200 text-sm truncate transition text-gray-800"
-                                                    title={play.name}
-                                                    aria-label={`Load play: ${play.name}`}
-                                                >
-                                                    {play.name}
-                                                </button>
-                                                <button 
-                                                    onClick={() => openNotesModal(index)}
-                                                    className="bg-yellow-500 text-white px-2 py-1 rounded-lg text-sm hover:bg-yellow-600 transition"
-                                                    aria-label={`Edit notes for play: ${play.name}`}
-                                                >
-                                                    📝
-                                                </button>
-                                                {play.notes && (
-                                                    <span className="tooltip">{play.notes}</span>
-                                                )}
-                                                <button 
-                                                    onClick={() => sharePlay(play)}
-                                                    className="bg-green-500 text-white px-2 py-1 rounded-lg text-sm hover:bg-green-600 transition"
-                                                    aria-label={`Share play: ${play.name}`}
-                                                >
-                                                    Share
-                                                </button>
-                                                <button 
-                                                    onClick={() => deletePlay(index)}
-                                                    className="bg-red-600 text-white px-2 py-1 rounded-lg text-sm hover:bg-red-700 transition"
-                                                    aria-label={`Delete play: ${play.name}`}
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
+                        </div>
+                    )}
+                    {showSaveModal && (
+                        <div className="modal">
+                            <div className="modal-content p-6">
+                                <h2 className="text-xl font-bold mb-4">Save Play</h2>
+                                <input
+                                    type="text"
+                                    value={playName}
+                                    onChange={(e) => setPlayName(e.target.value)}
+                                    placeholder="Enter play name"
+                                    className="border border-gray-300 p-3 rounded-lg text-base w-full focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
+                                    aria-label="Play name input"
+                                />
+                                <div className="flex justify-center gap-4">
+                                    <button
+                                        onClick={savePlay}
+                                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                                        aria-label="Save play"
+                                    >
+                                        Save
+                                    </button>
+                                    <button
+                                        onClick={() => setShowSaveModal(false)}
+                                        className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
+                                        aria-label="Cancel save play"
+                                    >
+                                        Cancel
+                                    </button>
                                 </div>
                             </div>
-
-                            {showPremiumModal && (
-                                <div className="modal">
-                                    <div className="modal-content p-6">
-                                        <h2 className="text-xl font-bold mb-4">Upgrade to Premium</h2>
-                                        <p className="text-gray-600 mb-4">Unlock unlimited saves, drawing lines, notes, and cloud storage!</p>
-                                        {errorMessage && (
-                                            <p className="text-red-600 mb-4">{errorMessage}</p>
-                                        )}
-                                        <button
-                                            onClick={() => handleGoPremium('monthly')}
-                                            className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mb-2 disabled:opacity-50"
-                                            disabled={isLoading}
-                                            aria-label="Subscribe to monthly plan"
-                                        >
-                                            {isLoading ? <span className="loading-spinner"></span> : '$4.99/month'}
-                                        </button>
-                                        <button
-                                            onClick={() => handleGoPremium('annual')}
-                                            className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mb-2 disabled:opacity-50"
-                                            disabled={isLoading}
-                                            aria-label="Subscribe to annual plan"
-                                        >
-                                            {isLoading ? <span className="loading-spinner"></span> : '$39.99/year (Save 33%)'}
-                                        </button>
-                                        <button
-                                            onClick={() => handleGoPremium('onetime')}
-                                            className="block mx-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition mb-2 disabled:opacity-50"
-                                            disabled={isLoading}
-                                            aria-label="Purchase one-time full access"
-                                        >
-                                            {isLoading ? <span className="loading-spinner"></span> : '$74.99 One-Time Full Access'}
-                                        </button>
-                                        <div className="flex justify-center mt-4">
-                                            <button
-                                                onClick={() => setShowPremiumModal(false)}
-                                                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-                                                aria-label="Cancel premium upgrade"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {showNotesModal && (
-                                <div className="modal">
-                                    <div className="modal-content p-6">
-                                        <h2 className="text-xl font-bold mb-4">Play Notes</h2>
-                                        <textarea
-                                            value={currentNotes}
-                                            onChange={(e) => setCurrentNotes(e.target.value)}
-                                            placeholder="Add notes (e.g., 2 outs, runner on 3rd)"
-                                            className="border border-gray-300 p-3 rounded-lg text-base w-full h-32 resize-none focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
-                                            aria-label="Play notes input"
-                                        />
-                                        <div className="flex justify-center gap-4">
-                                            <button
-                                                onClick={saveNotes}
-                                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-                                                aria-label="Save play notes"
-                                            >
-                                                Save Notes
-                                            </button>
-                                            <button
-                                                onClick={() => setShowNotesModal(false)}
-                                                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-                                                aria-label="Cancel notes"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     )}
                 </div>
