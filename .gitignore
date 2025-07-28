@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# GitHub Codespaces
+.codespaces
+.devcontainer
+
+# Editor/IDE
+.vscode/
+*.code-workspace
+
+# Temporary files
+*.tmp
+*.bak
