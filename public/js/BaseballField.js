@@ -47,10 +47,16 @@ const BaseballField = ({ setError }) => {
     }, [positions]);
 
     const handleDrag = (id, newX, newY) => {
-        setPositions(prev => ({
-            ...prev,
-            [id]: { ...prev[id], x: newX, y: newY }
-        }));
+        setPositions(prev => {
+            const newPositions = { ...prev, [id]: { ...prev[id], x: newX, y: newY } };
+            // Clear any stale render artifacts
+            const svg = document.querySelector('svg');
+            if (svg) {
+                const grayCircles = svg.querySelectorAll('circle[fill="gray"]');
+                grayCircles.forEach(circle => circle.remove());
+            }
+            return newPositions;
+        });
     };
 
     const handleMouseDown = (e) => {
@@ -122,7 +128,7 @@ const BaseballField = ({ setError }) => {
     };
 
     const resetPositions = () => {
-        setPositions(initialPositions); // Reset all positions to initial state
+        setPositions(initialPositions);
         setLines([]);
         setDrawing(false);
         setCurrentLine(null);
@@ -174,7 +180,7 @@ const BaseballField = ({ setError }) => {
                         id: 'arrow',
                         markerWidth: '10',
                         markerHeight: '10',
-                        refX: '8', // Reverted to past working value
+                        refX: '8',
                         refY: '3',
                         orient: 'auto',
                         markerUnits: 'strokeWidth'
