@@ -112,7 +112,7 @@
                 width: 100%;
             }
             svg {
-                max-height: 400px;
+                max-height: 500px;
             }
         }
     </style>
@@ -128,20 +128,20 @@
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         const initialPositions = {
-            pitcher: { x: 400, y: 360, label: 'P' },
-            catcher: { x: 400, y: 520, label: 'C' },
-            first: { x: 500, y: 320, label: '1B' },
-            second: { x: 450, y: 240, label: '2B' },
-            third: { x: 300, y: 320, label: '3B' },
-            shortstop: { x: 350, y: 240, label: 'SS' },
-            left: { x: 275, y: 150, label: 'LF' },
-            center: { x: 400, y: 100, label: 'CF' },
-            right: { x: 525, y: 150, label: 'RF' },
-            baseball: { x: 500, y: 470, label: '⚾' },
-            runner1: { x: 535, y: 470, label: 'BR' },
-            runner2: { x: 570, y: 470, label: 'BR' },
-            runner3: { x: 535, y: 505, label: 'BR' },
-            runner4: { x: 570, y: 505, label: 'BR' }
+            pitcher: { x: 300, y: 360, label: 'P' },
+            catcher: { x: 300, y: 520, label: 'C' },
+            first: { x: 400, y: 320, label: '1B' },
+            second: { x: 350, y: 240, label: '2B' },
+            third: { x: 200, y: 320, label: '3B' },
+            shortstop: { x: 250, y: 240, label: 'SS' },
+            left: { x: 175, y: 150, label: 'LF' },
+            center: { x: 300, y: 100, label: 'CF' },
+            right: { x: 425, y: 150, label: 'RF' },
+            baseball: { x: 400, y: 470, label: '⚾' },
+            runner1: { x: 435, y: 470, label: 'BR' },
+            runner2: { x: 470, y: 470, label: 'BR' },
+            runner3: { x: 435, y: 505, label: 'BR' },
+            runner4: { x: 470, y: 505, label: 'BR' }
         };
 
         function DraggableMarker({ id, x, y, label, color, onDrag }) {
@@ -207,18 +207,18 @@
                     <circle 
                         cx={x} 
                         cy={y} 
-                        r={id === 'baseball' ? 8 : 10} 
+                        r={id === 'baseball' ? 9 : 12} 
                         fill={color} 
                         stroke="white" 
-                        strokeWidth="1.5"
+                        strokeWidth="1.7"
                     />
                     {label && (
                         <text 
                             x={x} 
-                            y={y + (id === 'baseball' ? 3 : 4)} 
+                            y={y + (id === 'baseball' ? 3.5 : 4.5)} 
                             textAnchor="middle" 
                             fill="white" 
-                            fontSize={id === 'baseball' ? 12 : 10}
+                            fontSize={id === 'baseball' ? 13 : 11}
                         >
                             {label}
                         </text>
@@ -420,7 +420,7 @@
                         </div>
                     ) : (
                         <div className="container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4 min-h-[600px]">
-                            <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
+                            <div className="w-full md:w-1/6 p-4 flex flex-col gap-4 sidebar">
                                 <div className="text-center">
                                     <h1 className="text-xl md:text-2xl font-bold title-highlight">FieldCommand</h1>
                                     <p className="text-sm text-gray-600 mt-1">Baseball Defense Planner</p>
@@ -468,9 +468,9 @@
                                 <svg 
                                     width="100%" 
                                     height="100%" 
-                                    viewBox="100 0 500 550" 
+                                    viewBox="0 0 600 600" 
                                     preserveAspectRatio="xMidYMid meet"
-                                    className="border rounded-lg svg-shadow w-full max-w-[600px] h-auto" 
+                                    className="border rounded-lg svg-shadow w-full max-w-[800px] h-auto" 
                                     style={{ backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' }} 
                                     onMouseDown={handleMouseDown}
                                     onMouseMove={handleMouseMove}
@@ -482,36 +482,36 @@
                                     aria-label="Baseball field diagram"
                                 >
                                     <defs>
-                                        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="2.5" orient="auto">
-                                            <path d="M0,0 L0,5 L7,2.5 Z" fill="black" />
+                                        <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="2.75" orient="auto">
+                                            <path d="M0,0 L0,5.5 L8,2.75 Z" fill="black" />
                                         </marker>
                                     </defs>
-                                    <rect x="100" y="0" width="500" height="550" fill="rgba(0, 128, 0, 0.8)" />
+                                    <rect x="0" y="0" width="600" height="600" fill="rgba(0, 128, 0, 0.8)" />
                                     <path 
-                                        d="M 400 490 L 250 340 Q 300 240 400 240 Q 500 240 550 340 L 400 490 Z" 
+                                        d="M 300 500 L 150 350 Q 200 250 300 250 Q 400 250 450 350 L 300 500 Z" 
                                         fill="burlywood"
                                         stroke="white"
-                                        strokeWidth="1.5"
+                                        strokeWidth="1.7"
                                     />
                                     <path 
-                                        d="M 400 490 L 300 390 L 400 290 L 500 390 Z" 
+                                        d="M 300 500 L 200 400 L 300 300 L 400 400 Z" 
                                         fill="rgba(0, 128, 0, 0.8)"
                                         stroke="white"
-                                        strokeWidth="1.5"
+                                        strokeWidth="1.7"
                                     />
-                                    <circle cx="400" cy="390" r="20" fill="burlywood" stroke="white" strokeWidth="1.5" />
-                                    <rect x="390" y="385" width="20" height="5" fill="white" />
+                                    <circle cx="300" cy="400" r="20" fill="burlywood" stroke="white" strokeWidth="1.7" />
+                                    <rect x="290" y="395" width="20" height="5" fill="white" />
                                     <path 
-                                        d="M 390 482 L 410 482 L 410 497 L 400 501 L 390 497 Z" 
+                                        d="M 290 492 L 310 492 L 310 507 L 300 511 L 290 507 Z" 
                                         fill="white"
                                     />
-                                    <rect x="290" y="380" width="15" height="15" fill="white" transform="rotate(45 300 390)" />
-                                    <rect x="390" y="280" width="15" height="15" fill="white" transform="rotate(45 400 290)" />
-                                    <rect x="490" y="380" width="15" height="15" fill="white" transform="rotate(45 500 390)" />
-                                    <line x1="400" y1="490" x2="300" y2="390" stroke="white" strokeWidth="1.5" />
-                                    <line x1="300" y1="390" x2="400" y2="290" stroke="white" strokeWidth="1.5" />
-                                    <line x1="400" y1="290" x2="500" y2="390" stroke="white" strokeWidth="1.5" />
-                                    <line x1="500" y1="390" x2="400" y2="490" stroke="white" strokeWidth="1.5" />
+                                    <rect x="190" y="390" width="15" height="15" fill="white" transform="rotate(45 200 400)" />
+                                    <rect x="290" y="290" width="15" height="15" fill="white" transform="rotate(45 300 300)" />
+                                    <rect x="390" y="390" width="15" height="15" fill="white" transform="rotate(45 400 400)" />
+                                    <line x1="300" y1="500" x2="200" y2="400" stroke="white" strokeWidth="1.7" />
+                                    <line x1="200" y1="400" x2="300" y2="300" stroke="white" strokeWidth="1.7" />
+                                    <line x1="300" y1="300" x2="400" y2="400" stroke="white" strokeWidth="1.7" />
+                                    <line x1="400" y1="400" x2="300" y2="500" stroke="white" strokeWidth="1.7" />
                                     {lines.map((line, index) => (
                                         <g key={index}>
                                             <line
@@ -520,7 +520,7 @@
                                                 x2={line.end.x}
                                                 y2={line.end.y}
                                                 stroke="black"
-                                                strokeWidth="1.5"
+                                                strokeWidth="1.7"
                                                 strokeDasharray={line.type === 'dotted' ? '5,5' : 'none'}
                                                 markerEnd="url(#arrow)"
                                             />
@@ -534,12 +534,12 @@
                                                 x2={currentLine.end.x}
                                                 y2={currentLine.end.y}
                                                 stroke="black"
-                                                strokeWidth="1.5"
+                                                strokeWidth="1.7"
                                                 strokeDasharray={currentLine.type === 'dotted' ? '5,5' : 'none'}
                                                 markerEnd="url(#arrow)"
                                             />
                                         </g>
-                                    )}
+                                    ))}
                                     {Object.entries(positions).map(([id, { x, y, label }]) => (
                                         <DraggableMarker 
                                             key={id} 
@@ -553,7 +553,7 @@
                                     ))}
                                 </svg>
                             </div>
-                            <div className="w-full md:w-1/4 p-4 flex flex-col gap-4 sidebar">
+                            <div className="w-full md:w-1/6 p-4 flex flex-col gap-4 sidebar">
                                 <div className="text-center">
                                     <h3 className="text-sm font-bold">Save Plays</h3>
                                 </div>
