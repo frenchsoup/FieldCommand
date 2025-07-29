@@ -57,7 +57,7 @@
             color: #e53e3e;
             font-size: 0.875rem;
             margin-top: 0.25rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
         input, button, textarea {
             font-size: 16px;
@@ -128,20 +128,20 @@
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         const initialPositions = {
-            pitcher: { x: 350, y: 308, label: 'P' },
-            catcher: { x: 350, y: 455, label: 'C' },
-            first: { x: 450, y: 275, label: '1B' },
-            second: { x: 400, y: 205, label: '2B' },
-            third: { x: 250, y: 275, label: '3B' },
-            shortstop: { x: 300, y: 205, label: 'SS' },
-            left: { x: 225, y: 125, label: 'LF' },
-            center: { x: 350, y: 75, label: 'CF' },
-            right: { x: 475, y: 125, label: 'RF' },
-            baseball: { x: 450, y: 410, label: '⚾' },
-            runner1: { x: 485, y: 410, label: 'BR' },
-            runner2: { x: 520, y: 410, label: 'BR' },
-            runner3: { x: 485, y: 445, label: 'BR' },
-            runner4: { x: 520, y: 445, label: 'BR' }
+            pitcher: { x: 400, y: 360, label: 'P' },
+            catcher: { x: 400, y: 520, label: 'C' },
+            first: { x: 500, y: 320, label: '1B' },
+            second: { x: 450, y: 240, label: '2B' },
+            third: { x: 300, y: 320, label: '3B' },
+            shortstop: { x: 350, y: 240, label: 'SS' },
+            left: { x: 275, y: 150, label: 'LF' },
+            center: { x: 400, y: 100, label: 'CF' },
+            right: { x: 525, y: 150, label: 'RF' },
+            baseball: { x: 500, y: 470, label: '⚾' },
+            runner1: { x: 535, y: 470, label: 'BR' },
+            runner2: { x: 570, y: 470, label: 'BR' },
+            runner3: { x: 535, y: 505, label: 'BR' },
+            runner4: { x: 570, y: 505, label: 'BR' }
         };
 
         function DraggableMarker({ id, x, y, label, color, onDrag }) {
@@ -207,18 +207,18 @@
                     <circle 
                         cx={x} 
                         cy={y} 
-                        r={id === 'baseball' ? 10 : 15} 
+                        r={id === 'baseball' ? 8 : 10} 
                         fill={color} 
                         stroke="white" 
-                        strokeWidth="2"
+                        strokeWidth="1.5"
                     />
                     {label && (
                         <text 
                             x={x} 
-                            y={y + (id === 'baseball' ? 4 : 5)} 
+                            y={y + (id === 'baseball' ? 3 : 4)} 
                             textAnchor="middle" 
                             fill="white" 
-                            fontSize={id === 'baseball' ? 14 : 12}
+                            fontSize={id === 'baseball' ? 12 : 10}
                         >
                             {label}
                         </text>
@@ -239,6 +239,13 @@
             const [emailError, setEmailError] = useState('');
             const [savedPlays, setSavedPlays] = useState([]);
             const [playName, setPlayName] = useState('');
+            const [playNameError, setPlayNameError] = useState('');
+
+            async function hashEmail(email) {
+                const msgBuffer = new TextEncoder().encode(email);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+            }
 
             const getClientPosition = (e) => {
                 const isTouch = e.type.startsWith('touch');
@@ -248,7 +255,7 @@
                 };
             };
 
-            const handleEmailSubmit = () => {
+            const handleEmailSubmit = async () => {
                 if (!emailRegex.test(email)) {
                     setEmailError('Please enter a valid email address.');
                     return;
@@ -256,9 +263,10 @@
                 localStorage.setItem('fieldCommandUnlocked', 'true');
                 setShowEmailGate(false);
                 setEmailError('');
+                const hashedEmail = await hashEmail(email);
                 gtag('event', 'submit_email', {
                     'event_category': 'Engagement',
-                    'event_label': email
+                    'event_label': hashedEmail
                 });
             };
 
@@ -271,9 +279,10 @@
 
             const savePlay = () => {
                 if (!playName.trim()) {
-                    alert('Please enter a play name.');
+                    setPlayNameError('Please enter a play name.');
                     return;
                 }
+                setPlayNameError('');
                 setSavedPlays(prev => [
                     ...prev,
                     { name: playName, positions, lines }
@@ -459,7 +468,7 @@
                                 <svg 
                                     width="100%" 
                                     height="100%" 
-                                    viewBox="150 25 400 450" 
+                                    viewBox="100 0 500 550" 
                                     preserveAspectRatio="xMidYMid meet"
                                     className="border rounded-lg svg-shadow w-full max-w-[600px] h-auto" 
                                     style={{ backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' }} 
@@ -473,36 +482,36 @@
                                     aria-label="Baseball field diagram"
                                 >
                                     <defs>
-                                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-                                            <path d="M0,0 L0,6 L9,3 Z" fill="black" />
+                                        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="2.5" orient="auto">
+                                            <path d="M0,0 L0,5 L7,2.5 Z" fill="black" />
                                         </marker>
                                     </defs>
-                                    <rect x="150" y="25" width="400" height="450" fill="rgba(0, 128, 0, 0.8)" />
+                                    <rect x="100" y="0" width="500" height="550" fill="rgba(0, 128, 0, 0.8)" />
                                     <path 
-                                        d="M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z" 
+                                        d="M 400 490 L 250 340 Q 300 240 400 240 Q 500 240 550 340 L 400 490 Z" 
                                         fill="burlywood"
                                         stroke="white"
-                                        strokeWidth="2"
+                                        strokeWidth="1.5"
                                     />
                                     <path 
-                                        d="M 350 425 L 250 325 L 350 225 L 450 325 Z" 
+                                        d="M 400 490 L 300 390 L 400 290 L 500 390 Z" 
                                         fill="rgba(0, 128, 0, 0.8)"
                                         stroke="white"
-                                        strokeWidth="2"
+                                        strokeWidth="1.5"
                                     />
-                                    <circle cx="350" cy="325" r="20" fill="burlywood" stroke="white" strokeWidth="2" />
-                                    <rect x="340" y="320" width="20" height="5" fill="white" />
+                                    <circle cx="400" cy="390" r="20" fill="burlywood" stroke="white" strokeWidth="1.5" />
+                                    <rect x="390" y="385" width="20" height="5" fill="white" />
                                     <path 
-                                        d="M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z" 
+                                        d="M 390 482 L 410 482 L 410 497 L 400 501 L 390 497 Z" 
                                         fill="white"
                                     />
-                                    <rect x="240" y="315" width="15" height="15" fill="white" transform="rotate(45 250 325)" />
-                                    <rect x="340" y="215" width="15" height="15" fill="white" transform="rotate(45 350 225)" />
-                                    <rect x="440" y="315" width="15" height="15" fill="white" transform="rotate(45 450 325)" />
-                                    <line x1="350" y1="425" x2="250" y2="325" stroke="white" strokeWidth="2" />
-                                    <line x1="250" y1="325" x2="350" y2="225" stroke="white" strokeWidth="2" />
-                                    <line x1="350" y1="225" x2="450" y2="325" stroke="white" strokeWidth="2" />
-                                    <line x1="450" y1="325" x2="350" y2="425" stroke="white" strokeWidth="2" />
+                                    <rect x="290" y="380" width="15" height="15" fill="white" transform="rotate(45 300 390)" />
+                                    <rect x="390" y="280" width="15" height="15" fill="white" transform="rotate(45 400 290)" />
+                                    <rect x="490" y="380" width="15" height="15" fill="white" transform="rotate(45 500 390)" />
+                                    <line x1="400" y1="490" x2="300" y2="390" stroke="white" strokeWidth="1.5" />
+                                    <line x1="300" y1="390" x2="400" y2="290" stroke="white" strokeWidth="1.5" />
+                                    <line x1="400" y1="290" x2="500" y2="390" stroke="white" strokeWidth="1.5" />
+                                    <line x1="500" y1="390" x2="400" y2="490" stroke="white" strokeWidth="1.5" />
                                     {lines.map((line, index) => (
                                         <g key={index}>
                                             <line
@@ -511,7 +520,7 @@
                                                 x2={line.end.x}
                                                 y2={line.end.y}
                                                 stroke="black"
-                                                strokeWidth="2"
+                                                strokeWidth="1.5"
                                                 strokeDasharray={line.type === 'dotted' ? '5,5' : 'none'}
                                                 markerEnd="url(#arrow)"
                                             />
@@ -525,7 +534,7 @@
                                                 x2={currentLine.end.x}
                                                 y2={currentLine.end.y}
                                                 stroke="black"
-                                                strokeWidth="2"
+                                                strokeWidth="1.5"
                                                 strokeDasharray={currentLine.type === 'dotted' ? '5,5' : 'none'}
                                                 markerEnd="url(#arrow)"
                                             />
@@ -551,11 +560,17 @@
                                 <input
                                     type="text"
                                     value={playName}
-                                    onChange={(e) => setPlayName(e.target.value)}
+                                    onChange={(e) => { 
+                                        setPlayName(e.target.value);
+                                        if (e.target.value.trim()) setPlayNameError('');
+                                    }}
                                     placeholder="Enter play name"
                                     className="border border-gray-300 p-3 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-green-500"
                                     aria-label="Play name input"
                                 />
+                                {playNameError && (
+                                    <p className="error-message">{playNameError}</p>
+                                )}
                                 <button
                                     onClick={savePlay}
                                     className="bg-green-600 text-white px-4 py-3 rounded-lg text-base hover:bg-green-700 transition"
