@@ -52,6 +52,7 @@
         .sidebar {
             background: #f8fafc;
             border-radius: 8px;
+            flex-shrink: 0;
         }
         .error-message {
             color: #e53e3e;
@@ -112,7 +113,7 @@
                 width: 100%;
             }
             svg {
-                max-height: 500px;
+                max-height: 450px;
             }
         }
     </style>
@@ -128,20 +129,20 @@
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         const initialPositions = {
-            pitcher: { x: 300, y: 360, label: 'P' },
-            catcher: { x: 300, y: 520, label: 'C' },
-            first: { x: 400, y: 320, label: '1B' },
-            second: { x: 350, y: 240, label: '2B' },
-            third: { x: 200, y: 320, label: '3B' },
-            shortstop: { x: 250, y: 240, label: 'SS' },
-            left: { x: 175, y: 150, label: 'LF' },
-            center: { x: 300, y: 100, label: 'CF' },
-            right: { x: 425, y: 150, label: 'RF' },
-            baseball: { x: 400, y: 470, label: '⚾' },
-            runner1: { x: 435, y: 470, label: 'BR' },
-            runner2: { x: 470, y: 470, label: 'BR' },
-            runner3: { x: 435, y: 505, label: 'BR' },
-            runner4: { x: 470, y: 505, label: 'BR' }
+            pitcher: { x: 300, y: 345, label: 'P' },
+            catcher: { x: 300, y: 465, label: 'C' },
+            first: { x: 375, y: 315, label: '1B' },
+            second: { x: 337.5, y: 255, label: '2B' },
+            third: { x: 225, y: 315, label: '3B' },
+            shortstop: { x: 262.5, y: 255, label: 'SS' },
+            left: { x: 206.25, y: 187.5, label: 'LF' },
+            center: { x: 300, y: 150, label: 'CF' },
+            right: { x: 393.75, y: 187.5, label: 'RF' },
+            baseball: { x: 375, y: 427.5, label: '⚾' },
+            runner1: { x: 401.25, y: 427.5, label: 'BR' },
+            runner2: { x: 427.5, y: 427.5, label: 'BR' },
+            runner3: { x: 401.25, y: 453.75, label: 'BR' },
+            runner4: { x: 427.5, y: 453.75, label: 'BR' }
         };
 
         function DraggableMarker({ id, x, y, label, color, onDrag }) {
@@ -419,7 +420,7 @@
                             </button>
                         </div>
                     ) : (
-                        <div className="container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4 min-h-[600px]">
+                        <div className="container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4 min-h-[700px]">
                             <div className="w-full md:w-1/6 p-4 flex flex-col gap-4 sidebar">
                                 <div className="text-center">
                                     <h1 className="text-xl md:text-2xl font-bold title-highlight">FieldCommand</h1>
@@ -453,7 +454,7 @@
                                         className="bg-gray-600 text-white px-4 py-3 text-base hover:bg-gray-700 transition"
                                         aria-label="Undo last drawn line"
                                     >
-                                        Undo
+                                        Undo Line
                                     </button>
                                     <button
                                         onClick={resetLines}
@@ -468,7 +469,7 @@
                                 <svg 
                                     width="100%" 
                                     height="100%" 
-                                    viewBox="0 0 600 600" 
+                                    viewBox="75 75 450 450" 
                                     preserveAspectRatio="xMidYMid meet"
                                     className="border rounded-lg svg-shadow w-full max-w-[800px] h-auto" 
                                     style={{ backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' }} 
@@ -486,32 +487,32 @@
                                             <path d="M0,0 L0,5.5 L8,2.75 Z" fill="black" />
                                         </marker>
                                     </defs>
-                                    <rect x="0" y="0" width="600" height="600" fill="rgba(0, 128, 0, 0.8)" />
+                                    <rect x="75" y="75" width="450" height="450" fill="rgba(0, 128, 0, 0.8)" />
                                     <path 
-                                        d="M 300 500 L 150 350 Q 200 250 300 250 Q 400 250 450 350 L 300 500 Z" 
+                                        d="M 300 450 L 187.5 337.5 Q 225 262.5 300 262.5 Q 375 262.5 412.5 337.5 L 300 450 Z" 
                                         fill="burlywood"
                                         stroke="white"
                                         strokeWidth="1.7"
                                     />
                                     <path 
-                                        d="M 300 500 L 200 400 L 300 300 L 400 400 Z" 
+                                        d="M 300 450 L 225 375 L 300 300 L 375 375 Z" 
                                         fill="rgba(0, 128, 0, 0.8)"
                                         stroke="white"
                                         strokeWidth="1.7"
                                     />
-                                    <circle cx="300" cy="400" r="20" fill="burlywood" stroke="white" strokeWidth="1.7" />
-                                    <rect x="290" y="395" width="20" height="5" fill="white" />
+                                    <circle cx="300" cy="375" r="20" fill="burlywood" stroke="white" strokeWidth="1.7" />
+                                    <rect x="292.5" y="371.25" width="20" height="5" fill="white" />
                                     <path 
-                                        d="M 290 492 L 310 492 L 310 507 L 300 511 L 290 507 Z" 
+                                        d="M 292.5 441.75 L 307.5 441.75 L 307.5 453.75 L 300 457.5 L 292.5 453.75 Z" 
                                         fill="white"
                                     />
-                                    <rect x="190" y="390" width="15" height="15" fill="white" transform="rotate(45 200 400)" />
-                                    <rect x="290" y="290" width="15" height="15" fill="white" transform="rotate(45 300 300)" />
-                                    <rect x="390" y="390" width="15" height="15" fill="white" transform="rotate(45 400 400)" />
-                                    <line x1="300" y1="500" x2="200" y2="400" stroke="white" strokeWidth="1.7" />
-                                    <line x1="200" y1="400" x2="300" y2="300" stroke="white" strokeWidth="1.7" />
-                                    <line x1="300" y1="300" x2="400" y2="400" stroke="white" strokeWidth="1.7" />
-                                    <line x1="400" y1="400" x2="300" y2="500" stroke="white" strokeWidth="1.7" />
+                                    <rect x="217.5" y="367.5" width="15" height="15" fill="white" transform="rotate(45 225 375)" />
+                                    <rect x="292.5" y="292.5" width="15" height="15" fill="white" transform="rotate(45 300 300)" />
+                                    <rect x="367.5" y="367.5" width="15" height="15" fill="white" transform="rotate(45 375 375)" />
+                                    <line x1="300" y1="450" x2="225" y2="375" stroke="white" strokeWidth="1.7" />
+                                    <line x1="225" y1="375" x2="300" y2="300" stroke="white" strokeWidth="1.7" />
+                                    <line x1="300" y1="300" x2="375" y2="375" stroke="white" strokeWidth="1.7" />
+                                    <line x1="375" y1="375" x2="300" y2="450" stroke="white" strokeWidth="1.7" />
                                     <>
                                         {lines.map((line, index) => (
                                             <g key={index}>
@@ -566,8 +567,8 @@
                                         setPlayName(e.target.value);
                                         if (e.target.value.trim()) setPlayNameError('');
                                     }}
-                                    placeholder="Enter play name"
-                                    className="border border-gray-300 p-3 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder="Enter name"
+                                    className="border border-gray-300 p-3 rounded-lg text-sm w-full focus:outline-none focus:ring-2 focus:ring-green-500"
                                     aria-label="Play name input"
                                 />
                                 {playNameError && (
