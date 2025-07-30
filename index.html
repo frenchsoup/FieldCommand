@@ -54,6 +54,9 @@
             border-radius: 8px;
             flex-shrink: 0;
         }
+        .sidebar h1 {
+            overflow-wrap: break-word;
+        }
         .error-message {
             color: #e53e3e;
             font-size: 0.875rem;
@@ -132,20 +135,20 @@
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         const initialPositions = {
-            pitcher: { x: 300, y: 345, label: 'P' },
-            catcher: { x: 300, y: 465, label: 'C' },
+            pitcher: { x: 300, y: 360, label: 'P' },
+            catcher: { x: 300, y: 470, label: 'C' },
             first: { x: 367.5, y: 337.5, label: '1B' },
             second: { x: 345, y: 262.5, label: '2B' },
             third: { x: 217.5, y: 337.5, label: '3B' },
             shortstop: { x: 255, y: 262.5, label: 'SS' },
-            left: { x: 187.5, y: 187.5, label: 'LF' },
+            left: { x: 180, y: 210, label: 'LF' },
             center: { x: 300, y: 150, label: 'CF' },
-            right: { x: 412.5, y: 187.5, label: 'RF' },
-            baseball: { x: 390, y: 427.5, label: '⚾' },
-            runner1: { x: 416.25, y: 427.5, label: 'BR' },
-            runner2: { x: 442.5, y: 427.5, label: 'BR' },
-            runner3: { x: 416.25, y: 453.75, label: 'BR' },
-            runner4: { x: 442.5, y: 453.75, label: 'BR' }
+            right: { x: 420, y: 210, label: 'RF' },
+            baseball: { x: 420, y: 427.5, label: '⚾' },
+            runner1: { x: 446.25, y: 427.5, label: 'BR' },
+            runner2: { x: 472.5, y: 427.5, label: 'BR' },
+            runner3: { x: 446.25, y: 453.75, label: 'BR' },
+            runner4: { x: 472.5, y: 453.75, label: 'BR' }
         };
 
         function DraggableMarker({ id, x, y, label, color, onDrag }) {
@@ -426,27 +429,27 @@
                         <div className="container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4 min-h-[700px]">
                             <div className="w-full md:w-1/6 p-4 flex flex-col gap-4 sidebar">
                                 <div className="text-center">
-                                    <h1 className="text-lg md:text-xl font-bold title-highlight">FieldCommand</h1>
+                                    <h1 className="text-base md:text-lg font-bold title-highlight">FieldCommand</h1>
                                     <p className="text-xs text-gray-600 mt-1">Baseball Defense Planner</p>
                                     <p className="text-2xs text-gray-500 mt-1">Plan Winning Defensive Strategies</p>
                                 </div>
                                 <button 
                                     onClick={resetPositions}
-                                    className="bg-gray-600 text-white px-4 py-3 rounded-lg text-base hover:bg-gray-700 transition"
+                                    className="bg-gray-600 text-white px-3 py-2 rounded-lg text-base w-full hover:bg-gray-700 transition"
                                     aria-label="Reset play to default"
                                 >
                                     Reset Play
                                 </button>
                                 <button
                                     onClick={toggleSolidMode}
-                                    className={`px-4 py-3 rounded-lg text-base ${isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition`}
+                                    className={`px-3 py-2 rounded-lg text-base w-full ${isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition`}
                                     aria-label="Toggle solid line drawing"
                                 >
                                     Solid Line {isSolidMode ? '(On)' : '(Off)'}
                                 </button>
                                 <button
                                     onClick={toggleDottedMode}
-                                    className={`px-4 py-3 rounded-lg text-base ${isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition`}
+                                    className={`px-3 py-2 rounded-lg text-base w-full ${isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition`}
                                     aria-label="Toggle dotted line drawing"
                                 >
                                     Dotted Line {isDottedMode ? '(On)' : '(Off)'}
@@ -454,14 +457,14 @@
                                 <div className="split-button">
                                     <button
                                         onClick={undoLine}
-                                        className="bg-gray-600 text-white px-4 py-3 text-base hover:bg-gray-700 transition"
+                                        className="bg-gray-600 text-white px-3 py-2 text-base w-full hover:bg-gray-700 transition"
                                         aria-label="Undo last drawn line"
                                     >
                                         Undo Line
                                     </button>
                                     <button
                                         onClick={resetLines}
-                                        className="bg-gray-600 text-white px-4 py-3 text-base hover:bg-gray-700 transition"
+                                        className="bg-gray-600 text-white px-3 py-2 text-base w-full hover:bg-gray-700 transition"
                                         aria-label="Reset all drawn lines"
                                     >
                                         Reset Lines
@@ -504,7 +507,7 @@
                                         strokeWidth="1.7"
                                     />
                                     <circle cx="300" cy="375" r="20" fill="burlywood" stroke="white" strokeWidth="1.7" />
-                                    <rect x="292.5" y="371.25" width="20" height="5" fill="white" />
+                                    <rect x="290" y="371.25" width="20" height="5" fill="white" />
                                     <path 
                                         d="M 292.5 441.75 L 307.5 441.75 L 307.5 453.75 L 300 457.5 L 292.5 453.75 Z" 
                                         fill="white"
@@ -579,7 +582,7 @@
                                 )}
                                 <button
                                     onClick={savePlay}
-                                    className="bg-green-600 text-white px-4 py-3 rounded-lg text-base hover:bg-green-700 transition"
+                                    className="bg-green-600 text-white px-3 py-2 rounded-lg text-base w-full hover:bg-green-700 transition"
                                     aria-label="Save current play"
                                 >
                                     Save
