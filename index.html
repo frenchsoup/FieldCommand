@@ -451,6 +451,13 @@
                                 {playNameError && (
                                     <p className="error-message">{playNameError}</p>
                                 )}
+                                <button
+                                    onClick={savePlay}
+                                    className="bg-green-600 text-white px-3 py-2 rounded-lg text-base w-full hover:bg-green-700 transition mt-2"
+                                    aria-label="Save current play"
+                                >
+                                    Save Play
+                                </button>
                                 <button 
                                     onClick={resetPositions}
                                     className="bg-gray-600 text-white px-3 py-2 rounded-lg text-base w-full hover:bg-gray-700 transition mt-4"
@@ -507,13 +514,6 @@
                                             ))
                                         )}
                                     </div>
-                                    <button
-                                        onClick={savePlay}
-                                        className="bg-green-600 text-white px-3 py-2 rounded-lg text-base w-full hover:bg-green-700 transition mt-4"
-                                        aria-label="Save current play"
-                                    >
-                                        Save Play
-                                    </button>
                                 </div>
                             </div>
                             <div className="flex-1 flex justify-center">
@@ -528,7 +528,7 @@
                                     onMouseMove={handleMouseMove}
                                     onMouseUp={handleMouseUp}
                                     onTouchStart={handleMouseDown}
-                                    onTouchMove={handleMouseMove}
+                                    onTouchMove={handleMove}
                                     onTouchEnd={handleMouseUp}
                                     role="img"
                                     aria-label="Baseball field diagram"
