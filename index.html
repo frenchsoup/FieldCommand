@@ -3,23 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="FieldCommand: Plan baseball defense strategies with ease. Position players, draw plays, and save your work.">
+    <meta name="description" content="FieldCommand: Plan baseball defense strategies with ease. Position players and draw plays on any device.">
     <meta name="keywords" content="baseball, defense planner, coaching tool, FieldCommand">
     <meta property="og:title" content="⚾ FieldCommand: Baseball Defense Planner">
-    <meta property="og:description" content="Plan baseball plays with ease! ⚾ Draw strategies and position players on your iPad or phone.">
+    <meta property="og:description" content="Plan baseball plays with ease! ⚾ Draw strategies and position players on any device.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://fieldcommand.netlify.app">
+    <meta property="og:url" content="https://fieldcommand.netlify.app/">
     <title>FieldCommand: Baseball Defense Planner</title>
-    <link rel="preconnect" href="https://js.stripe.com">
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="preconnect" href="https://www.googletagmanager.com">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KCRLDQSSEY"></script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C3TQ7DWTX8"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-KCRLDQSSEY');
+      gtag('config', 'G-C3TQ7DWTX8');
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -28,12 +34,12 @@
             overscroll-behavior: none;
             -webkit-user-select: none;
             user-select: none;
+            touch-action: manipulation;
         }
         .container {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 1rem;
         }
         .title-highlight {
             background: linear-gradient(90deg, #2c3e50 0%, #3498db 100%);
@@ -46,746 +52,569 @@
         .sidebar {
             background: #f8fafc;
             border-radius: 8px;
+            flex: 1 1 20%;
             padding: 1rem;
         }
-        .error-message, .success-message {
+        .sidebar h1 {
+            overflow-wrap: break-word;
+        }
+        .error-message {
+            color: #e53e3e;
             font-size: 0.875rem;
-            margin-top: -0.5rem;
-            margin-bottom: 1rem;
-            display: none;
+            margin-top: 0.25rem;
+            margin-bottom: 0.5rem;
         }
-        .error-message { color: #e53e3e; }
-        .success-message {
-            color: #2f855a;
-            background: #f0fff4;
-            padding: 0.5rem;
-            border-radius: 4px;
-            position: absolute;
-            top: -2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            text-align: center;
+        input, button, textarea {
+            font-size: 16px;
         }
-        .modal {
-            background: rgba(0, 0, 0, 0.5);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+        .split-button {
             display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100%;
         }
-        .modal-content {
+        .split-button button {
+            flex: 1;
+            border-radius: 0;
+        }
+        .split-button button:first-child {
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .split-button button:last-child {
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+        .email-gate {
             background: white;
             border-radius: 8px;
             max-width: 400px;
             text-align: center;
             padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
-        .tooltip {
-            visibility: hidden;
-            background-color: #333;
-            color: white;
-            text-align: center;
-            border-radius: 4px;
+        .saved-plays-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
             padding: 8px;
-            position: absolute;
-            z-index: 10;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            max-width: 200px;
-            font-size: 14px;
-            white-space: pre-wrap;
         }
-        .tooltip-container:hover .tooltip { visibility: visible; }
-        svg { background-color: rgba(0, 128, 0, 0.8); touch-action: none; }
-        .button-green { background-color: #16a34a; color: white; }
-        .button-gray { background-color: #4b5563; color: white; }
-        .button-blue { background-color: #2563eb; color: white; }
-        .button-red { background-color: #dc2626; color: white; }
-        .button-yellow { background-color: #d97706; color: white; }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .saved-play-item {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            background: #edf2f7;
+        }
+        .saved-play-item:hover {
+            background: #e2e8f0;
+        }
+        .text-2xs {
+            font-size: 10px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                flex: 1 1 100%;
+            }
+            svg {
+                max-height: 450px;
+            }
         }
     </style>
 </head>
-<body>
-    <div id="loading" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: white;">
-        <div style="width: 3rem; height: 3rem; border: 4px solid #16a34a; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-    </div>
-    <div style="width: 100%; max-width: 1200px; margin: 0 auto; padding: 1rem;">
+<body class="min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-[1200px] mx-auto p-4 md:p-6">
         <div id="root" role="application" aria-label="FieldCommand Baseball Defense Planner"></div>
     </div>
 
-    <!-- Scripts with shim -->
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="https://cdn.jsdelivr.net/npm/preact@10.11.0/dist/preact.umd.js" onload="console.log('Preact script loaded')" onerror="console.error('Preact script failed to load')"></script>
-    <script src="https://cdn.jsdelivr.net/npm/preact@10.11.0/hooks/dist/hooks.umd.js" onload="console.log('Preact Hooks script loaded')" onerror="console.error('Preact Hooks script failed to load')"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-    <script type="text/javascript">
-        console.log('Script started');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        // Shim to ensure Preact globals are set
-        window.Preact = window.Preact || {};
-        window.PreactHooks = window.PreactHooks || {};
+        const initialPositions = {
+            pitcher: { x: 266, y: 320, label: 'P' },
+            catcher: { x: 266, y: 418, label: 'C' },
+            first: { x: 326, y: 300, label: '1B' },
+            second: { x: 306, y: 233, label: '2B' },
+            third: { x: 194, y: 300, label: '3B' },
+            shortstop: { x: 226, y: 233, label: 'SS' },
+            left: { x: 160, y: 186, label: 'LF' },
+            center: { x: 266, y: 133, label: 'CF' },
+            right: { x: 373, y: 186, label: 'RF' },
+            baseball: { x: 373, y: 380, label: '⚾' },
+            runner1: { x: 396, y: 380, label: 'BR' },
+            runner2: { x: 418, y: 380, label: 'BR' },
+            runner3: { x: 396, y: 402, label: 'BR' },
+            runner4: { x: 418, y: 402, label: 'BR' }
+        };
 
-        function initApp() {
-            console.log('initApp called');
-            console.log('Preact:', window.Preact);
-            console.log('PreactHooks:', window.PreactHooks);
-            if (typeof Preact === 'undefined' || typeof Preact.h === 'undefined' || typeof PreactHooks.useState === 'undefined') {
-                console.error('Preact or Hooks incomplete');
-                document.getElementById('loading').innerHTML = '<div style="text-align: center; color: #e53e3e;">Failed to load app. Please check your connection and refresh.</div>';
-                return;
-            }
-            console.log('Preact loaded');
+        function DraggableMarker({ id, x, y, label, color, onDrag }) {
+            const [isDragging, setIsDragging] = useState(false);
 
-            const { h, render } = Preact;
-            const { useState, useEffect } = PreactHooks;
-
-            const firebaseConfig = {
-                apiKey: "AIzaSyCrSN8xc3KTGrc2gUzcqerL6SSYrF3LXZM",
-                authDomain: "fieldcommand.firebaseapp.com",
-                projectId: "fieldcommand",
-                storageBucket: "fieldcommand.firebasestorage.app",
-                messagingSenderId: "944064034218",
-                appId: "1:944064034218:web:bb6744acdd0d66e9ba27d3",
-                measurementId: "G-C3TQ7DWTX8"
+            const getClientPosition = (e) => {
+                const isTouch = e.type.startsWith('touch');
+                return {
+                    x: isTouch ? e.touches[0].clientX : e.clientX,
+                    y: isTouch ? e.touches[0].clientY : e.clientY
+                };
             };
 
-            let app, db, auth;
-            try {
-                console.log('Initializing Firebase');
-                app = firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-                auth = firebase.auth();
-                console.log('Firebase initialized');
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-            }
-
-            let stripe;
-            const stripePromise = new Promise((resolve) => {
-                const checkStripe = () => {
-                    if (window.Stripe) {
-                        stripe = window.Stripe('pk_test_51RBeP6B311TbF66104ceu6MjOAU7FBEHtNyrCccF93ZJNgj4QGQPirUo28iyaWewu6xX9frkQrEwCR2kVdQb5XrC00aNVEvPJ5');
-                        resolve(stripe);
-                    } else {
-                        setTimeout(checkStripe, 100);
-                    }
-                };
-                checkStripe();
-            });
-
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-            const initialPositions = {
-                pitcher: { x: 350, y: 308, label: 'P' },
-                catcher: { x: 350, y: 455, label: 'C' },
-                first: { x: 450, y: 275, label: '1B' },
-                second: { x: 400, y: 205, label: '2B' },
-                third: { x: 250, y: 275, label: '3B' },
-                shortstop: { x: 300, y: 205, label: 'SS' },
-                left: { x: 225, y: 125, label: 'LF' },
-                center: { x: 350, y: 75, label: 'CF' },
-                right: { x: 475, y: 125, label: 'RF' },
-                baseball: { x: 450, y: 410, label: '⚾' },
-                runner1: { x: 485, y: 410, label: 'BR' },
-                runner2: { x: 520, y: 410, label: 'BR' },
-                runner3: { x: 485, y: 445, label: 'BR' },
-                runner4: { x: 520, y: 445, label: 'BR' }
+            const handleStart = (e) => {
+                setIsDragging(true);
+                e.preventDefault();
+                e.stopPropagation();
             };
 
-            function DraggableMarker({ id, x, y, label, color, onDrag }) {
-                const [isDragging, setIsDragging] = useState(false);
-
-                const getClientPosition = (e) => {
-                    const isTouch = e.type.startsWith('touch');
-                    return {
-                        x: isTouch ? e.touches[0].clientX : e.clientX,
-                        y: isTouch ? e.touches[0].clientY : e.clientY
-                    };
-                };
-
-                const handleStart = (e) => {
-                    setIsDragging(true);
+            const handleMove = React.useCallback((e) => {
+                if (isDragging) {
+                    const { x, y } = getClientPosition(e);
+                    const svg = document.querySelector('svg');
+                    const pt = svg.createSVGPoint();
+                    pt.x = x;
+                    pt.y = y;
+                    const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
+                    onDrag(id, transformed.x, transformed.y);
                     e.preventDefault();
-                    e.stopPropagation();
+                }
+            }, [isDragging, id, onDrag]);
+
+            const handleEnd = React.useCallback((e) => {
+                setIsDragging(false);
+                e.preventDefault();
+            }, []);
+
+            useEffect(() => {
+                if (isDragging) {
+                    document.addEventListener('mousemove', handleMove);
+                    document.addEventListener('mouseup', handleEnd);
+                    document.addEventListener('touchmove', handleMove, { passive: false });
+                    document.addEventListener('touchend', handleEnd);
+                }
+                return () => {
+                    document.removeEventListener('mousemove', handleMove);
+                    document.removeEventListener('mouseup', handleEnd);
+                    document.removeEventListener('touchmove', handleMove);
+                    document.removeEventListener('touchend', handleEnd);
                 };
+            }, [isDragging, handleMove, handleEnd]);
 
-                const handleMove = (e) => {
-                    if (isDragging) {
-                        const { x, y } = getClientPosition(e);
-                        const svg = document.querySelector('svg');
-                        const pt = svg.createSVGPoint();
-                        pt.x = x;
-                        pt.y = y;
-                        const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
-                        onDrag(id, transformed.x, transformed.y);
-                        e.preventDefault();
-                    }
+            return (
+                <g 
+                    onMouseDown={handleStart} 
+                    onTouchStart={handleStart} 
+                    className="cursor-move touch-none"
+                    tabIndex="0"
+                    role="button"
+                    aria-label={`${label} marker at position ${x},${y}`}
+                    onKeyDown={(e) => e.key === 'Enter' && handleStart(e)}
+                >
+                    <circle 
+                        cx={x} 
+                        cy={y} 
+                        r={id === 'baseball' ? 9 : 12} 
+                        fill={color} 
+                        stroke="white" 
+                        strokeWidth="1.7"
+                    />
+                    {label && (
+                        <text 
+                            x={x} 
+                            y={y + (id === 'baseball' ? 3.5 : 4.5)} 
+                            textAnchor="middle" 
+                            fill="white" 
+                            fontSize={id === 'baseball' ? 13 : 11}
+                        >
+                            {label}
+                        </text>
+                    )}
+                </g>
+            );
+        }
+
+        function BaseballField() {
+            const [positions, setPositions] = useState(initialPositions);
+            const [isSolidMode, setIsSolidMode] = useState(false);
+            const [isDottedMode, setIsDottedMode] = useState(false);
+            const [drawing, setDrawing] = useState(false);
+            const [currentLine, setCurrentLine] = useState(null);
+            const [lines, setLines] = useState([]);
+            const [showEmailGate, setShowEmailGate] = useState(!localStorage.getItem('fieldCommandUnlocked'));
+            const [email, setEmail] = useState('');
+            const [emailError, setEmailError] = useState('');
+            const [savedPlays, setSavedPlays] = useState([]);
+            const [playName, setPlayName] = useState('');
+            const [playNameError, setPlayNameError] = useState('');
+
+            async function hashEmail(email) {
+                const msgBuffer = new TextEncoder().encode(email);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+
+            const getClientPosition = (e) => {
+                const isTouch = e.type.startsWith('touch');
+                return {
+                    x: isTouch ? e.touches[0].clientX : e.clientX,
+                    y: isTouch ? e.touches[0].clientY : e.clientY
                 };
+            };
 
-                const handleEnd = (e) => {
-                    setIsDragging(false);
-                    e.preventDefault();
-                };
+            const handleEmailSubmit = async () => {
+                if (!emailRegex.test(email)) {
+                    setEmailError('Please enter a valid email address.');
+                    return;
+                }
+                localStorage.setItem('fieldCommandUnlocked', 'true');
+                setShowEmailGate(false);
+                setEmailError('');
+                const hashedEmail = await hashEmail(email);
+                gtag('event', 'submit_email', {
+                    'event_category': 'Engagement',
+                    'event_label': hashedEmail
+                });
+            };
 
-                useEffect(() => {
-                    if (isDragging) {
-                        document.addEventListener('mousemove', handleMove);
-                        document.addEventListener('mouseup', handleEnd);
-                        document.addEventListener('touchmove', handleMove, { passive: false });
-                        document.addEventListener('touchend', handleEnd);
-                    }
-                    return () => {
-                        document.removeEventListener('mousemove', handleMove);
-                        document.removeEventListener('mouseup', handleEnd);
-                        document.removeEventListener('touchmove', handleMove);
-                        document.removeEventListener('touchend', handleEnd);
-                    };
-                }, [isDragging]);
+            const handleDrag = (id, newX, newY) => {
+                setPositions(prev => ({
+                    ...prev,
+                    [id]: { ...prev[id], x: newX, y: newY }
+                }));
+            };
 
-                return h('g', {
-                    onMouseDown: handleStart,
-                    onTouchStart: handleStart,
-                    className: 'cursor-move touch-none',
-                    tabIndex: 0,
-                    role: 'button',
-                    'aria-label': `${label} marker at position ${x},${y}`
-                }, [
-                    h('circle', { cx: x, cy: y, r: id === 'baseball' ? 10 : 15, fill: color, stroke: 'white', strokeWidth: 2 }),
-                    label && h('text', { x: x, y: y + (id === 'baseball' ? 4 : 5), textAnchor: 'middle', fill: 'white', fontSize: id === 'baseball' ? 14 : 12 }, label)
+            const savePlay = () => {
+                if (!playName.trim()) {
+                    setPlayNameError('Please enter a play name.');
+                    return;
+                }
+                setPlayNameError('');
+                setSavedPlays(prev => [
+                    ...prev,
+                    { name: playName, positions, lines }
                 ]);
-            }
+                setPlayName('');
+            };
 
-            function BaseballField() {
-                const [positions, setPositions] = useState(initialPositions);
-                const [playName, setPlayName] = useState('');
-                const [savedPlays, setSavedPlays] = useState([]);
-                const [isSolidMode, setIsSolidMode] = useState(false);
-                const [isDottedMode, setIsDottedMode] = useState(false);
-                const [drawing, setDrawing] = useState(false);
-                const [currentLine, setCurrentLine] = useState(null);
-                const [lines, setLines] = useState([]);
-                const [showPremiumModal, setShowPremiumModal] = useState(false);
-                const [showNotesModal, setShowNotesModal] = useState(false);
-                const [currentPlayIndex, setCurrentPlayIndex] = useState(null);
-                const [currentNotes, setCurrentNotes] = useState('');
-                const [isPremium, setIsPremium] = useState(localStorage.getItem('isPremium') === 'true');
-                const [showEmailGate, setShowEmailGate] = useState(localStorage.getItem('fieldCommandUnlocked') !== 'true' && !isPremium);
-                const [error, setError] = useState(null);
-                const [showSuccess, setShowSuccess] = useState(false);
+            const loadPlay = (play) => {
+                setPositions(play.positions);
+                setLines(play.lines);
+            };
 
-                useEffect(() => {
-                    console.log('useEffect running');
-                    if (!app || !db || !auth) {
-                        setError("Firebase not initialized. Check console for details.");
-                        console.log('Firebase not initialized');
-                        return;
-                    }
-                    console.log('Attempting anonymous sign-in');
-                    auth.signInAnonymously().then((userCredential) => {
-                        console.log('Signed in anonymously:', userCredential.user.uid);
-                        const userId = userCredential.user.uid;
-                        db.collection('users').doc(userId).collection('plays').onSnapshot((querySnapshot) => {
-                            console.log('Firestore snapshot received');
-                            const plays = [];
-                            querySnapshot.forEach((doc) => plays.push(doc.data()));
-                            setSavedPlays(plays);
-                            document.getElementById('loading').style.display = 'none';
-                            console.log('Loader hidden, plays loaded:', plays);
-                        }, (error) => {
-                            console.error('Error loading plays:', error);
-                            setError("Failed to load plays: " + error.message);
-                        });
-                    }).catch((error) => {
-                        console.error('Error signing in anonymously:', error);
-                        setError("Authentication failed: " + error.message);
-                    });
-                }, []);
+            const resetPositions = () => {
+                setPositions(initialPositions);
+                setLines([]);
+                setDrawing(false);
+                setCurrentLine(null);
+                setIsSolidMode(false);
+                setIsDottedMode(false);
+            };
 
-                const getClientPosition = (e) => {
-                    const isTouch = e.type.startsWith('touch');
-                    return {
-                        x: isTouch ? e.touches[0].clientX : e.clientX,
-                        y: isTouch ? e.touches[0].clientY : e.clientY
-                    };
-                };
+            const toggleSolidMode = () => {
+                setIsSolidMode(prev => {
+                    const newState = !prev;
+                    if (newState) setIsDottedMode(false);
+                    return newState;
+                });
+            };
 
-                const triggerPremiumModal = () => {
-                    gtag('event', 'premium_modal_view', { event_category: 'Premium', event_label: 'Premium Modal Displayed' });
-                    setShowPremiumModal(true);
-                };
+            const toggleDottedMode = () => {
+                setIsDottedMode(prev => {
+                    const newState = !prev;
+                    if (newState) setIsSolidMode(false);
+                    return newState;
+                });
+            };
 
-                const handleEmailSubmit = async (e) => {
-                    e.preventDefault();
-                    const email = e.target.querySelector('#unlock-email').value;
-                    const errorMessage = e.target.querySelector('#email-error');
-                    const successMessage = e.target.querySelector('#email-success');
+            const handleMouseDown = (e) => {
+                if (!isSolidMode && !isDottedMode) return;
 
-                    if (!emailRegex.test(email)) {
-                        errorMessage.style.display = 'block';
-                        return;
-                    }
-                    errorMessage.style.display = 'none';
-                    gtag('event', 'unlock_app_attempt', { event_category: 'Engagement', event_label: 'Email Submission Attempt' });
-                    const formData = new FormData();
-                    formData.append('EMAIL', email);
-                    formData.append('b_c3a7558bf8ddc22b2955671f5_1130a67a8c', '');
-                    try {
-                        await fetch('https://us20.list-manage.com/subscribe/post?u=c3a7558bf8ddc22b2955671f5&id=1130a67a8c&f_id=0076c2edf0', {
-                            method: 'POST',
-                            body: formData,
-                            mode: 'no-cors'
-                        });
-                        setShowSuccess(true);
-                        setTimeout(() => {
-                            setShowSuccess(false);
-                            setShowEmailGate(false);
-                        }, 2000);
-                        gtag('event', 'unlock_app_success', { event_category: 'Engagement', event_label: 'Email Submission Success', value: 1 });
-                    } catch (error) {
-                        console.error('Error submitting to Mailchimp:', error);
-                        errorMessage.textContent = "Something went wrong. Please try again.";
-                        errorMessage.style.display = 'block';
-                        gtag('event', 'unlock_app_error', { event_category: 'Engagement', event_label: 'Email Submission Error' });
-                    }
-                    localStorage.setItem('fieldCommandUnlocked', 'true');
-                };
+                const svg = e.currentTarget;
+                const { x, y } = getClientPosition(e);
+                const pt = svg.createSVGPoint();
+                pt.x = x;
+                pt.y = y;
+                const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
+                
+                setDrawing(true);
+                setCurrentLine({
+                    start: { x: transformed.x, y: transformed.y },
+                    end: { x: transformed.x, y: transformed.y },
+                    type: isSolidMode ? 'solid' : 'dotted'
+                });
+                e.preventDefault();
+            };
 
-                const handleDrag = (id, newX, newY) => {
-                    setPositions(prev => ({ ...prev, [id]: { ...prev[id], x: newX, y: newY } }));
-                };
-
-                const savePlay = () => {
-                    if (!isPremium) return triggerPremiumModal();
-                    if (playName) {
-                        const newPlay = { name: playName, positions: { ...positions }, lines: [...lines], notes: '' };
-                        const newSavedPlays = [...savedPlays, newPlay];
-                        setSavedPlays(newSavedPlays);
-                        if (auth.currentUser) {
-                            db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playName).set(newPlay)
-                                .catch((error) => console.error('Error saving play:', error));
-                        }
-                        setPlayName('');
-                    }
-                };
-
-                const loadPlay = (play) => {
-                    setPositions(play.positions);
-                    setLines(play.lines || []);
-                    setPlayName(play.name);
-                };
-
-                const deletePlay = (index) => {
-                    const playToDelete = savedPlays[index];
-                    const newSavedPlays = savedPlays.filter((_, i) => i !== index);
-                    setSavedPlays(newSavedPlays);
-                    if (auth.currentUser) {
-                        db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(playToDelete.name).delete()
-                            .catch((error) => console.error('Error deleting play:', error));
-                    }
-                    resetPositions();
-                };
-
-                const resetPositions = () => {
-                    setPositions(initialPositions);
-                    setLines([]);
-                    setDrawing(false);
-                    setCurrentLine(null);
-                    setIsSolidMode(false);
-                    setIsDottedMode(false);
-                    setPlayName('');
-                };
-
-                const toggleSolidMode = () => {
-                    if (!isPremium) return triggerPremiumModal();
-                    setIsSolidMode(prev => {
-                        const newState = !prev;
-                        if (newState) setIsDottedMode(false);
-                        return newState;
-                    });
-                };
-
-                const toggleDottedMode = () => {
-                    if (!isPremium) return triggerPremiumModal();
-                    setIsDottedMode(prev => {
-                        const newState = !prev;
-                        if (newState) setIsSolidMode(false);
-                        return newState;
-                    });
-                };
-
-                const handleMouseDown = (e) => {
-                    if (!isPremium || (!isSolidMode && !isDottedMode)) return;
-                    const svg = e.currentTarget;
+            const handleMouseMove = (e) => {
+                if (drawing) {
+                    const svg = document.querySelector('svg');
                     const { x, y } = getClientPosition(e);
                     const pt = svg.createSVGPoint();
                     pt.x = x;
                     pt.y = y;
                     const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
-                    setDrawing(true);
-                    setCurrentLine({ start: { x: transformed.x, y: transformed.y }, end: { x: transformed.x, y: transformed.y }, type: isSolidMode ? 'solid' : 'dotted' });
+                    
+                    setCurrentLine(prev => ({
+                        ...prev,
+                        end: { x: transformed.x, y: transformed.y }
+                    }));
                     e.preventDefault();
-                };
-
-                const handleMouseMove = (e) => {
-                    if (drawing) {
-                        const svg = document.querySelector('svg');
-                        const { x, y } = getClientPosition(e);
-                        const pt = svg.createSVGPoint();
-                        pt.x = x;
-                        pt.y = y;
-                        const transformed = pt.matrixTransform(svg.getScreenCTM().inverse());
-                        setCurrentLine(prev => ({ ...prev, end: { x: transformed.x, y: transformed.y } }));
-                        e.preventDefault();
-                    }
-                };
-
-                const handleMouseUp = () => {
-                    if (drawing && currentLine) {
-                        setLines(prev => [...prev, currentLine]);
-                        setDrawing(false);
-                        setCurrentLine(null);
-                    }
-                };
-
-                const undoLine = () => {
-                    setLines(prev => prev.slice(0, -1));
-                    setDrawing(false);
-                    setCurrentLine(null);
-                };
-
-                const resetLines = () => {
-                    setLines([]);
-                    setDrawing(false);
-                    setCurrentLine(null);
-                };
-
-                const handleGoPremium = async (plan) => {
-                    gtag('event', 'premium_interest', { event_category: 'Premium', event_label: `Go Premium Clicked - ${plan}`, value: plan === 'monthly' ? 4.99 : plan === 'annual' ? 39.99 : 74.99 });
-                    try {
-                        const stripeInstance = await stripePromise;
-                        let priceId, mode;
-                        if (plan === 'monthly') { priceId = 'price_1RBeSTB311TbF661Wzqqc3OW'; mode = 'subscription'; }
-                        else if (plan === 'annual') { priceId = 'price_1RBeT4B311TbF661BchpXFF1'; mode = 'subscription'; }
-                        else if (plan === 'onetime') { priceId = 'price_1RBoExB311TbF661pkuJDeP5'; mode = 'payment'; }
-                        localStorage.setItem('lastPremiumPlan', plan);
-                        const result = await stripeInstance.redirectToCheckout({
-                            lineItems: [{ price: priceId, quantity: 1 }],
-                            mode: mode,
-                            successUrl: window.location.href + '?premium_success=true',
-                            cancelUrl: window.location.href
-                        });
-                        if (result.error) console.error('Stripe checkout error:', result.error.message);
-                    } catch (error) {
-                        console.error('Error in handleGoPremium:', error);
-                    }
-                };
-
-                const openNotesModal = (index) => {
-                    if (!isPremium) return triggerPremiumModal();
-                    setCurrentPlayIndex(index);
-                    setCurrentNotes(savedPlays[index].notes || '');
-                    setShowNotesModal(true);
-                };
-
-                const saveNotes = () => {
-                    if (currentPlayIndex !== null) {
-                        const updatedPlays = [...savedPlays];
-                        updatedPlays[currentPlayIndex] = { ...updatedPlays[currentPlayIndex], notes: currentNotes };
-                        setSavedPlays(updatedPlays);
-                        if (auth.currentUser) {
-                            db.collection('users').doc(auth.currentUser.uid).collection('plays').doc(updatedPlays[currentPlayIndex].name).set(updatedPlays[currentPlayIndex])
-                                .catch((error) => console.error('Error saving notes:', error));
-                        }
-                    }
-                    setShowNotesModal(false);
-                    setCurrentPlayIndex(null);
-                    setCurrentNotes('');
-                };
-
-                useEffect(() => {
-                    if (window.location.search.includes('premium_success=true')) {
-                        gtag('event', 'purchase', {
-                            event_category: 'Ecommerce',
-                            event_label: 'Premium Purchase',
-                            value: localStorage.getItem('lastPremiumPlan') === 'monthly' ? 4.99 : localStorage.getItem('lastPremiumPlan') === 'annual' ? 39.99 : 74.99,
-                            currency: 'USD'
-                        });
-                        localStorage.setItem('isPremium', 'true');
-                        setIsPremium(true);
-                        setShowEmailGate(false);
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-                }, []);
-
-                if (error) {
-                    console.log('Rendering error state');
-                    return h('div', { style: { textAlign: 'center', color: '#e53e3e' } }, [
-                        h('h1', null, 'Error'),
-                        h('p', null, error),
-                        h('p', null, 'Check the console (F12) for more details.')
-                    ]);
                 }
+            };
 
-                console.log('Rendering main UI');
-                return h('div', null, [
-                    h('div', { style: { textAlign: 'center', marginBottom: '1.5rem' } }, [
-                        h('h1', { style: { fontSize: '2rem', fontWeight: 'bold', color: '#1f2937' } }, [
-                            'Welcome to ',
-                            h('span', { className: 'title-highlight' }, 'FieldCommand')
-                        ]),
-                        h('p', { style: { fontSize: '1.125rem', color: '#4b5563', marginTop: '0.5rem' } }, 
-                            'The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies—all in one tool.'
-                        )
-                    ]),
-                    showEmailGate ? h('div', { style: { maxWidth: '28rem', margin: '0 auto', position: 'relative' } }, [
-                        h('form', { onSubmit: handleEmailSubmit, className: 'validate', noValidate: true }, [
-                            h('label', { htmlFor: 'unlock-email', className: 'sr-only' }, 'Email'),
-                            h('input', {
-                                type: 'email',
-                                name: 'EMAIL',
-                                id: 'unlock-email',
-                                defaultValue: '',
-                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginBottom: '1rem' },
-                                placeholder: 'Enter your email to try free',
-                                required: true
-                            }),
-                            h('p', { id: 'email-error', className: 'error-message' }, 'Please enter a valid email address (e.g., user@domain.com).'),
-                            h('p', { id: 'email-success', className: `success-message ${showSuccess ? 'block' : ''}` }, 'Thanks for signing up! Starting now...'),
-                            h('div', { style: { position: 'absolute', left: '-5000px' }, 'aria-hidden': true }, 
-                                h('input', { type: 'text', name: 'b_c3a7558bf8ddc22b2955671f5_1130a67a8c', tabIndex: -1, defaultValue: '' })
-                            ),
-                            h('input', {
-                                type: 'submit',
-                                value: 'Start Planning',
-                                className: 'button-green',
-                                style: { padding: '0.75rem 1.5rem', borderRadius: '8px', width: '100%' }
-                            })
-                        ]),
-                        h('p', { style: { fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' } }, 'No credit card required—just your email to get started.')
-                    ]) : h('div', { className: 'container', style: { display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '600px' } }, [
-                        h('div', { className: 'sidebar', style: { flex: '1 1 25%' } }, [
-                            h('div', { style: { textAlign: 'center' } }, [
-                                h('h1', { className: 'title-highlight', style: { fontSize: '1.5rem', fontWeight: 'bold' } }, 'FieldCommand'),
-                                h('p', { style: { fontSize: '0.875rem', color: '#4b5563', marginTop: '0.25rem' } }, 'Baseball Defense Planner'),
-                                h('p', { style: { fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' } }, 'Plan Winning Defensive Strategies')
-                            ]),
-                            h('input', {
-                                type: 'text',
-                                value: playName,
-                                onChange: (e) => setPlayName(e.target.value),
-                                placeholder: 'Enter play name',
-                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem' }
-                            }),
-                            h('button', {
-                                onClick: savePlay,
-                                className: isPremium ? 'button-green' : 'button',
-                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem', opacity: isPremium ? 1 : 0.5 },
-                                disabled: !isPremium
-                            }, `Save Play ${isPremium ? '' : '(Premium)'}`),
-                            h('button', {
-                                onClick: resetPositions,
-                                className: 'button-gray',
-                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem' }
-                            }, 'Reset Play'),
-                            h('button', {
-                                onClick: toggleSolidMode,
-                                className: isPremium && isSolidMode ? 'button-green' : isPremium ? 'button' : 'button',
-                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem', opacity: isPremium ? 1 : 0.5 },
-                                disabled: !isPremium
-                            }, `Solid Line ${isSolidMode ? '(On)' : '(Off)'} ${isPremium ? '' : '(Premium)'}`),
-                            h('button', {
-                                onClick: toggleDottedMode,
-                                className: isPremium && isDottedMode ? 'button-green' : isPremium ? 'button' : 'button',
-                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem', opacity: isPremium ? 1 : 0.5 },
-                                disabled: !isPremium
-                            }, `Dotted Line ${isDottedMode ? '(On)' : '(Off)'} ${isPremium ? '' : '(Premium)'}`),
-                            h('div', { style: { display: 'flex', gap: '0.5rem', marginTop: '1rem' } }, [
-                                h('button', {
-                                    onClick: undoLine,
-                                    className: 'button-gray',
-                                    style: { padding: '0.75rem', borderRadius: '8px', flex: 1 }
-                                }, 'Undo'),
-                                h('button', {
-                                    onClick: resetLines,
-                                    className: 'button-gray',
-                                    style: { padding: '0.75rem', borderRadius: '8px', flex: 1 }
-                                }, 'Reset Lines')
-                            ]),
-                            !isPremium && h('button', {
-                                onClick: () => setShowPremiumModal(true),
-                                className: 'button-blue',
-                                style: { padding: '0.75rem', borderRadius: '8px', width: '100%', marginTop: '1rem' }
-                            }, 'Go Premium')
-                        ]),
-                        h('div', { style: { flex: '1', display: 'flex', justifyContent: 'center' } }, [
-                            h('svg', {
-                                width: '100%',
-                                height: '100%',
-                                viewBox: '150 25 400 450',
-                                preserveAspectRatio: 'xMidYMid meet',
-                                className: 'svg-shadow',
-                                style: { maxWidth: '600px', border: '1px solid #e5e7eb', borderRadius: '8px' },
-                                onMouseDown: handleMouseDown,
-                                onMouseMove: handleMouseMove,
-                                onMouseUp: handleMouseUp,
-                                onTouchStart: handleMouseDown,
-                                onTouchMove: handleMouseMove,
-                                onTouchEnd: handleMouseUp
-                            }, [
-                                h('defs', null, [
-                                    h('marker', { id: 'arrow', markerWidth: 10, markerHeight: 10, refX: 8, refY: 3, orient: 'auto' }, 
-                                        h('path', { d: 'M0,0 L0,6 L9,3 Z', fill: 'black' })
-                                    )
-                                ]),
-                                h('path', { d: 'M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z', fill: 'burlywood' }),
-                                h('path', { d: 'M 350 425 L 250 325 L 350 225 L 450 325 Z', fill: 'rgba(0, 128, 0, 0.8)' }),
-                                h('circle', { cx: 350, cy: 325, r: 20, fill: 'burlywood' }),
-                                h('rect', { x: 340, y: 320, width: 20, height: 5, fill: 'white' }),
-                                h('path', { d: 'M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z', fill: 'white' }),
-                                h('rect', { x: 240, y: 315, width: 15, height: 15, fill: 'white', transform: 'rotate(45 250 325)' }),
-                                h('rect', { x: 340, y: 215, width: 15, height: 15, fill: 'white', transform: 'rotate(45 350 225)' }),
-                                h('rect', { x: 440, y: 315, width: 15, height: 15, fill: 'white', transform: 'rotate(45 450 325)' }),
-                                h('line', { x1: 350, y1: 425, x2: 250, y2: 325, stroke: 'white', strokeWidth: 2 }),
-                                h('line', { x1: 250, y1: 325, x2: 350, y2: 225, stroke: 'white', strokeWidth: 2 }),
-                                h('line', { x1: 350, y1: 225, x2: 450, y2: 325, stroke: 'white', strokeWidth: 2 }),
-                                h('line', { x1: 450, y1: 325, x2: 350, y2: 425, stroke: 'white', strokeWidth: 2 }),
-                                lines.map((line, index) => h('g', { key: index }, [
-                                    h('line', {
-                                        x1: line.start.x,
-                                        y1: line.start.y,
-                                        x2: line.end.x,
-                                        y2: line.end.y,
-                                        stroke: 'black',
-                                        strokeWidth: 2,
-                                        strokeDasharray: line.type === 'dotted' ? '5,5' : 'none',
-                                        markerEnd: 'url(#arrow)'
-                                    })
-                                ])),
-                                currentLine && h('g', null, [
-                                    h('line', {
-                                        x1: currentLine.start.x,
-                                        y1: currentLine.start.y,
-                                        x2: currentLine.end.x,
-                                        y2: currentLine.end.y,
-                                        stroke: 'black',
-                                        strokeWidth: 2,
-                                        strokeDasharray: currentLine.type === 'dotted' ? '5,5' : 'none',
-                                        markerEnd: 'url(#arrow)'
-                                    })
-                                ]),
-                                Object.entries(positions).map(([id, { x, y, label }]) => 
-                                    h(DraggableMarker, {
-                                        key: id,
-                                        id: id,
-                                        x: x,
-                                        y: y,
-                                        label: label,
-                                        color: id === 'baseball' ? 'white' : id.includes('runner') ? 'black' : 'red',
-                                        onDrag: handleDrag
-                                    })
-                                )
-                            ])
-                        ]),
-                        h('div', { className: 'sidebar', style: { flex: '1 1 25%' } }, [
-                            h('h2', { style: { fontSize: '1.125rem', fontWeight: '600', textAlign: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' } }, 'Saved Plays'),
-                            h('div', { style: { flex: 1, overflowY: 'auto' } }, [
-                                h('div', { className: 'grid', style: { gap: '0.5rem' } }, 
-                                    savedPlays.map((play, index) => h('div', { key: index, className: 'tooltip-container', style: { display: 'flex', gap: '0.5rem', alignItems: 'center' } }, [
-                                        h('button', {
-                                            onClick: () => loadPlay(play),
-                                            style: { flex: 1, background: '#dbeafe', padding: '0.5rem', borderRadius: '8px', textAlign: 'left' },
-                                            title: play.name
-                                        }, play.name),
-                                        h('button', {
-                                            onClick: () => openNotesModal(index),
-                                            className: 'button-yellow',
-                                            style: { padding: '0.25rem 0.5rem', borderRadius: '8px' }
-                                        }, '📝'),
-                                        play.notes && h('span', { className: 'tooltip' }, play.notes),
-                                        h('button', {
-                                            onClick: () => deletePlay(index),
-                                            className: 'button-red',
-                                            style: { padding: '0.25rem 0.5rem', borderRadius: '8px' }
-                                        }, 'Delete')
-                                    ]))
-                                )
-                            ])
-                        ]),
-                        showPremiumModal && h('div', { className: 'modal' }, [
-                            h('div', { className: 'modal-content' }, [
-                                h('h2', { style: { fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' } }, 'Upgrade to Premium'),
-                                h('p', { style: { color: '#4b5563', marginBottom: '1rem' } }, 'Unlock saving plays, drawing lines, and adding notes!'),
-                                h('button', {
-                                    onClick: () => handleGoPremium('monthly'),
-                                    className: 'button-blue',
-                                    style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' }
-                                }, '$4.99/month'),
-                                h('button', {
-                                    onClick: () => handleGoPremium('annual'),
-                                    className: 'button-blue',
-                                    style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' }
-                                }, '$39.99/year (Save 33%)'),
-                                h('button', {
-                                    onClick: () => handleGoPremium('onetime'),
-                                    className: 'button-blue',
-                                    style: { padding: '0.5rem 1rem', borderRadius: '8px', display: 'block', margin: '0 auto 0.5rem' }
-                                }, '$74.99 One-Time Full Access'),
-                                h('div', { style: { display: 'flex', justifyContent: 'center', marginTop: '1rem' } }, [
-                                    h('button', {
-                                        onClick: () => setShowPremiumModal(false),
-                                        className: 'button-gray',
-                                        style: { padding: '0.5rem 1rem', borderRadius: '8px' }
-                                    }, 'Cancel')
-                                ])
-                            ])
-                        ]),
-                        showNotesModal && h('div', { className: 'modal' }, [
-                            h('div', { className: 'modal-content' }, [
-                                h('h2', { style: { fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' } }, 'Play Notes'),
-                                h('textarea', {
-                                    value: currentNotes,
-                                    onChange: (e) => setCurrentNotes(e.target.value),
-                                    placeholder: 'Add notes (e.g., 2 outs, runner on 3rd)',
-                                    style: { padding: '0.75rem', borderRadius: '8px', width: '100%', height: '8rem', resize: 'none', marginBottom: '1rem' }
-                                }),
-                                h('div', { style: { display: 'flex', justifyContent: 'center', gap: '1rem' } }, [
-                                    h('button', {
-                                        onClick: saveNotes,
-                                        className: 'button-green',
-                                        style: { padding: '0.5rem 1rem', borderRadius: '8px' }
-                                    }, 'Save Notes'),
-                                    h('button', {
-                                        onClick: () => setShowNotesModal(false),
-                                        className: 'button-gray',
-                                        style: { padding: '0.5rem 1rem', borderRadius: '8px' }
-                                    }, 'Cancel')
-                                ])
-                            ])
-                        ])
-                    ])
-                ]);
-            }
+            const handleMouseUp = () => {
+                if (drawing && currentLine) {
+                    setLines(prev => [...prev, currentLine]);
+                    setDrawing(false);
+                    setCurrentLine(null);
+                }
+            };
 
-            console.log('Rendering app');
-            render(h(BaseballField), document.getElementById('root'));
+            const undoLine = () => {
+                setLines(prev => prev.slice(0, -1));
+                setDrawing(false);
+                setCurrentLine(null);
+            };
+
+            const resetLines = () => {
+                setLines([]);
+                setDrawing(false);
+                setCurrentLine(null);
+            };
+
+            return (
+                <div>
+                    <div className="text-center mb-6">
+                        <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
+                            Welcome to <span className="title-highlight">FieldCommand</span>
+                        </h1>
+                        <p className="text-base md:text-lg text-gray-600 mt-2">
+                            Plan winning baseball strategies in seconds! ⚾ Drag players and draw plays.
+                        </p>
+                        <a 
+                            href="https://reddit.com/r/baseballcoaching" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-block mt-4 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+                            aria-label="Share feedback on Reddit"
+                        >
+                            Share Feedback on Reddit
+                        </a>
+                    </div>
+                    {showEmailGate ? (
+                        <div className="email-gate mx-auto">
+                            <h2 className="text-xl font-bold mb-4">Enter Your Email to Try FieldCommand</h2>
+                            <p className="text-gray-600 mb-4">Submit your email to access the app and help us improve it!</p>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter your email"
+                                className="border border-gray-300 p-3 rounded-lg text-base w-full focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
+                                aria-label="Email input"
+                            />
+                            {emailError && (
+                                <p className="error-message">{emailError}</p>
+                            )}
+                            <button
+                                onClick={handleEmailSubmit}
+                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                                aria-label="Submit email to access app"
+                            >
+                                Access FieldCommand
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4">
+                            <div className="sidebar">
+                                <div className="text-center">
+                                    <h1 className="text-base md:text-lg font-bold title-highlight">FieldCommand</h1>
+                                    <p className="text-xs text-gray-600 mt-1">Baseball Defense Planner</p>
+                                    <p className="text-2xs text-gray-500 mt-1">Plan Winning Defensive Strategies</p>
+                                </div>
+                                <button 
+                                    onClick={resetPositions}
+                                    className="bg-gray-600 text-white px-3 py-2 rounded-lg text-base w-full hover:bg-gray-700 transition mt-4"
+                                    aria-label="Reset play to default"
+                                >
+                                    Reset Play
+                                </button>
+                                <button
+                                    onClick={toggleSolidMode}
+                                    className={`px-3 py-2 rounded-lg text-base w-full ${isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition mt-2`}
+                                    aria-label="Toggle solid line drawing"
+                                >
+                                    Solid Line {isSolidMode ? '(On)' : '(Off)'}
+                                </button>
+                                <button
+                                    onClick={toggleDottedMode}
+                                    className={`px-3 py-2 rounded-lg text-base w-full ${isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition mt-2`}
+                                    aria-label="Toggle dotted line drawing"
+                                >
+                                    Dotted Line {isDottedMode ? '(On)' : '(Off)'}
+                                </button>
+                                <div className="split-button mt-2">
+                                    <button
+                                        onClick={undoLine}
+                                        className="bg-gray-600 text-white px-3 py-2 text-base w-full hover:bg-gray-700 transition"
+                                        aria-label="Undo last drawn line"
+                                    >
+                                        Undo Line
+                                    </button>
+                                    <button
+                                        onClick={resetLines}
+                                        className="bg-gray-600 text-white px-3 py-2 text-base w-full hover:bg-gray-700 transition"
+                                        aria-label="Reset all drawn lines"
+                                    >
+                                        Reset Lines
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex-1 flex justify-center">
+                                <svg 
+                                    width="100%" 
+                                    height="100%" 
+                                    viewBox="75 75 400 400" 
+                                    preserveAspectRatio="xMidYMid meet"
+                                    className="border rounded-lg svg-shadow max-w-[600px] h-auto" 
+                                    style={{ backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' }} 
+                                    onMouseDown={handleMouseDown}
+                                    onMouseMove={handleMouseMove}
+                                    onMouseUp={handleMouseUp}
+                                    onTouchStart={handleMouseDown}
+                                    onTouchMove={handleMouseMove}
+                                    onTouchEnd={handleMouseUp}
+                                    role="img"
+                                    aria-label="Baseball field diagram"
+                                >
+                                    <defs>
+                                        <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="2.75" orient="auto">
+                                            <path d="M0,0 L0,5.5 L8,2.75 Z" fill="black" />
+                                        </marker>
+                                    </defs>
+                                    <rect x="75" y="75" width="400" height="400" fill="rgba(0, 128, 0, 0.8)" />
+                                    <path 
+                                        d="M 266 400 L 166 300 Q 200 233 266 233 Q 333 233 366 300 L 266 400 Z" 
+                                        fill="burlywood"
+                                        stroke="white"
+                                        strokeWidth="1.7"
+                                    />
+                                    <path 
+                                        d="M 266 400 L 200 333 L 266 266 L 333 333 Z" 
+                                        fill="rgba(0, 128, 0, 0.8)"
+                                        stroke="white"
+                                        strokeWidth="1.7"
+                                    />
+                                    <circle cx="266" cy="333" r="18" fill="burlywood" stroke="white" strokeWidth="1.7" />
+                                    <rect x="258" y="330" width="16" height="4.5" fill="white" />
+                                    <path 
+                                        d="M 260 393 L 273 393 L 273 402 L 266 405 L 260 402 Z" 
+                                        fill="white"
+                                    />
+                                    <rect x="194" y="326" width="13" height="13" fill="white" transform="rotate(45 200 333)" />
+                                    <rect x="266" y="260" width="13" height="13" fill="white" transform="rotate(45 273 266)" />
+                                    <rect x="326" y="326" width="13" height="13" fill="white" transform="rotate(45 333 333)" />
+                                    <line x1="266" y1="400" x2="200" y2="333" stroke="white" strokeWidth="1.7" />
+                                    <line x1="200" y1="333" x2="266" y2="266" stroke="white" strokeWidth="1.7" />
+                                    <line x1="266" y1="266" x2="333" y2="333" stroke="white" strokeWidth="1.7" />
+                                    <line x1="333" y1="333" x2="266" y2="400" stroke="white" strokeWidth="1.7" />
+                                    <>
+                                        {lines.map((line, index) => (
+                                            <g key={index}>
+                                                <line
+                                                    x1={line.start.x}
+                                                    y1={line.start.y}
+                                                    x2={line.end.x}
+                                                    y2={line.end.y}
+                                                    stroke="black"
+                                                    strokeWidth="1.7"
+                                                    strokeDasharray={line.type === 'dotted' ? '5,5' : 'none'}
+                                                    markerEnd="url(#arrow)"
+                                                />
+                                            </g>
+                                        ))}
+                                        {currentLine && (
+                                            <g>
+                                                <line
+                                                    x1={currentLine.start.x}
+                                                    y1={currentLine.start.y}
+                                                    x2={currentLine.end.x}
+                                                    y2={currentLine.end.y}
+                                                    stroke="black"
+                                                    strokeWidth="1.7"
+                                                    strokeDasharray={currentLine.type === 'dotted' ? '5,5' : 'none'}
+                                                    markerEnd="url(#arrow)"
+                                                />
+                                            </g>
+                                        )}
+                                        {Object.entries(positions).map(([id, { x, y, label }]) => (
+                                            <DraggableMarker 
+                                                key={id} 
+                                                id={id} 
+                                                x={x} 
+                                                y={y} 
+                                                label={label}
+                                                color={id === 'baseball' ? 'white' : id.includes('runner') ? 'black' : 'red'}
+                                                onDrag={handleDrag}
+                                            />
+                                        ))}
+                                    </>
+                                </svg>
+                            </div>
+                            <div className="sidebar">
+                                <div className="text-center">
+                                    <h3 className="text-sm font-bold">Save Plays</h3>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={playName}
+                                    onChange={(e) => { 
+                                        setPlayName(e.target.value);
+                                        if (e.target.value.trim()) setPlayNameError('');
+                                    }}
+                                    placeholder="Enter name"
+                                    className="border border-gray-300 p-3 rounded-lg text-sm w-full focus:outline-none focus:ring-2 focus:ring-green-500 mt-4"
+                                    aria-label="Play name input"
+                                />
+                                {playNameError && (
+                                    <p className="error-message">{playNameError}</p>
+                                )}
+                                <button
+                                    onClick={savePlay}
+                                    className="bg-green-600 text-white px-3 py-2 rounded-lg text-base w-full hover:bg-green-700 transition mt-2"
+                                    aria-label="Save current play"
+                                >
+                                    Save
+                                </button>
+                                <div className="saved-plays-list mt-2">
+                                    <h3 className="text-sm font-bold mb-2">Saved Plays</h3>
+                                    {savedPlays.length === 0 ? (
+                                        <p className="text-sm text-gray-500">None saved yet.</p>
+                                    ) : (
+                                        savedPlays.map((play, index) => (
+                                            <div
+                                                key={index}
+                                                className="saved-play-item"
+                                                onClick={() => loadPlay(play)}
+                                                role="button"
+                                                aria-label={`Load play ${play.name}`}
+                                            >
+                                                {play.name}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
         }
 
-        setTimeout(() => {
-            console.log('Starting initApp after delay');
-            initApp();
-        }, 2000);
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<BaseballField />);
     </script>
 </body>
 </html>
