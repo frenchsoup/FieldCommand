@@ -40,6 +40,7 @@
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
         }
         .title-highlight {
             background: linear-gradient(90deg, #2c3e50 0%, #3498db 100%);
@@ -52,7 +53,7 @@
         .sidebar {
             background: #f8fafc;
             border-radius: 8px;
-            flex: 1 1 20%;
+            flex: 1 1 25%;
             padding: 1rem;
         }
         .sidebar h1 {
@@ -69,48 +70,39 @@
         }
         .split-button {
             display: flex;
-            width: 100%;
+            gap: 0.5rem;
         }
         .split-button button {
             flex: 1;
-            border-radius: 0;
-        }
-        .split-button button:first-child {
-            border-top-left-radius: 8px;
-            border-bottom-left-radius: 8px;
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
-        }
-        .split-button button:last-child {
-            border-top-right-radius: 8px;
-            border-bottom-right-radius: 8px;
+            padding: 0.75rem;
+            border-radius: 8px;
         }
         .email-gate {
             background: white;
             border-radius: 8px;
-            max-width: 400px;
+            max-width: 28rem;
             text-align: center;
             padding: 1.5rem;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
         }
         .saved-plays-list {
-            max-height: 200px;
+            flex: 1;
             overflow-y: auto;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 8px;
         }
         .saved-play-item {
             cursor: pointer;
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 4px;
-            background: #edf2f7;
+            padding: 0.5rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            background: #dbeafe;
+            text-align: left;
         }
         .saved-play-item:hover {
-            background: #e2e8f0;
+            background: #bfdbfe;
         }
         .text-2xs {
-            font-size: 10px;
+            font-size: 0.75rem;
         }
         @media (max-width: 768px) {
             .container {
@@ -126,7 +118,7 @@
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center">
-    <div class="w-full max-w-[1200px] mx-auto p-4 md:p-6">
+    <div class="w-full max-w-[1200px] mx-auto p-4">
         <div id="root" role="application" aria-label="FieldCommand Baseball Defense Planner"></div>
     </div>
 
@@ -136,20 +128,20 @@
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         const initialPositions = {
-            pitcher: { x: 266, y: 320, label: 'P' },
-            catcher: { x: 266, y: 418, label: 'C' },
-            first: { x: 326, y: 300, label: '1B' },
-            second: { x: 306, y: 233, label: '2B' },
-            third: { x: 194, y: 300, label: '3B' },
-            shortstop: { x: 226, y: 233, label: 'SS' },
-            left: { x: 160, y: 186, label: 'LF' },
-            center: { x: 266, y: 133, label: 'CF' },
-            right: { x: 373, y: 186, label: 'RF' },
-            baseball: { x: 373, y: 380, label: '⚾' },
-            runner1: { x: 396, y: 380, label: 'BR' },
-            runner2: { x: 418, y: 380, label: 'BR' },
-            runner3: { x: 396, y: 402, label: 'BR' },
-            runner4: { x: 418, y: 402, label: 'BR' }
+            pitcher: { x: 350, y: 308, label: 'P' },
+            catcher: { x: 350, y: 455, label: 'C' },
+            first: { x: 450, y: 275, label: '1B' },
+            second: { x: 400, y: 205, label: '2B' },
+            third: { x: 250, y: 275, label: '3B' },
+            shortstop: { x: 300, y: 205, label: 'SS' },
+            left: { x: 225, y: 125, label: 'LF' },
+            center: { x: 350, y: 75, label: 'CF' },
+            right: { x: 475, y: 125, label: 'RF' },
+            baseball: { x: 450, y: 410, label: '⚾' },
+            runner1: { x: 485, y: 410, label: 'BR' },
+            runner2: { x: 520, y: 410, label: 'BR' },
+            runner3: { x: 485, y: 445, label: 'BR' },
+            runner4: { x: 520, y: 445, label: 'BR' }
         };
 
         function DraggableMarker({ id, x, y, label, color, onDrag }) {
@@ -215,18 +207,18 @@
                     <circle 
                         cx={x} 
                         cy={y} 
-                        r={id === 'baseball' ? 9 : 12} 
+                        r={id === 'baseball' ? 10 : 15} 
                         fill={color} 
                         stroke="white" 
-                        strokeWidth="1.7"
+                        strokeWidth="2"
                     />
                     {label && (
                         <text 
                             x={x} 
-                            y={y + (id === 'baseball' ? 3.5 : 4.5)} 
+                            y={y + (id === 'baseball' ? 4 : 5)} 
                             textAnchor="middle" 
                             fill="white" 
-                            fontSize={id === 'baseball' ? 13 : 11}
+                            fontSize={id === 'baseball' ? 14 : 12}
                         >
                             {label}
                         </text>
@@ -387,11 +379,11 @@
             return (
                 <div>
                     <div className="text-center mb-6">
-                        <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
+                        <h1 className="text-2xl font-bold text-gray-800">
                             Welcome to <span className="title-highlight">FieldCommand</span>
                         </h1>
-                        <p className="text-base md:text-lg text-gray-600 mt-2">
-                            Plan winning baseball strategies in seconds! ⚾ Drag players and draw plays.
+                        <p className="text-base text-gray-600 mt-2">
+                            The ultimate baseball defense planner for coaches. Position players, draw plays, and save strategies—all in one tool.
                         </p>
                         <a 
                             href="https://reddit.com/r/baseballcoaching" 
@@ -404,36 +396,58 @@
                         </a>
                     </div>
                     {showEmailGate ? (
-                        <div className="email-gate mx-auto">
+                        <div className="email-gate">
                             <h2 className="text-xl font-bold mb-4">Enter Your Email to Try FieldCommand</h2>
                             <p className="text-gray-600 mb-4">Submit your email to access the app and help us improve it!</p>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Enter your email"
+                                placeholder="Enter your email to try free"
                                 className="border border-gray-300 p-3 rounded-lg text-base w-full focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
                                 aria-label="Email input"
                             />
                             {emailError && (
-                                <p className="error-message">{emailError}</p>
+                                <p className="error-message">Please enter a valid email address (e.g., user@domain.com).</p>
                             )}
                             <button
                                 onClick={handleEmailSubmit}
-                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                                className="bg-green-600 text-white px-6 py-3 rounded-lg text-base w-full hover:bg-green-700 transition"
                                 aria-label="Submit email to access app"
                             >
-                                Access FieldCommand
+                                Start Planning
                             </button>
+                            <p className="text-sm text-gray-600 mt-2">No credit card required—just your email to get started.</p>
                         </div>
                     ) : (
-                        <div className="container p-4 md:p-6 w-full max-w-[1200px] flex flex-col md:flex-row gap-4">
+                        <div className="container flex flex-col gap-4 min-h-[600px]">
                             <div className="sidebar">
                                 <div className="text-center">
-                                    <h1 className="text-base md:text-lg font-bold title-highlight">FieldCommand</h1>
-                                    <p className="text-xs text-gray-600 mt-1">Baseball Defense Planner</p>
-                                    <p className="text-2xs text-gray-500 mt-1">Plan Winning Defensive Strategies</p>
+                                    <h1 className="text-lg font-bold title-highlight">FieldCommand</h1>
+                                    <p className="text-sm text-gray-600 mt-1">Baseball Defense Planner</p>
+                                    <p className="text-2xs text-gray-600 mt-1">Plan Winning Defensive Strategies</p>
                                 </div>
+                                <input
+                                    type="text"
+                                    value={playName}
+                                    onChange={(e) => { 
+                                        setPlayName(e.target.value);
+                                        if (e.target.value.trim()) setPlayNameError('');
+                                    }}
+                                    placeholder="Enter play name"
+                                    className="border border-gray-300 p-3 rounded-lg text-base w-full focus:outline-none focus:ring-2 focus:ring-green-500 mt-4"
+                                    aria-label="Play name input"
+                                />
+                                {playNameError && (
+                                    <p className="error-message">{playNameError}</p>
+                                )}
+                                <button
+                                    onClick={savePlay}
+                                    className="bg-green-600 text-white px-3 py-2 rounded-lg text-base w-full hover:bg-green-700 transition mt-4"
+                                    aria-label="Save current play"
+                                >
+                                    Save Play
+                                </button>
                                 <button 
                                     onClick={resetPositions}
                                     className="bg-gray-600 text-white px-3 py-2 rounded-lg text-base w-full hover:bg-gray-700 transition mt-4"
@@ -443,29 +457,29 @@
                                 </button>
                                 <button
                                     onClick={toggleSolidMode}
-                                    className={`px-3 py-2 rounded-lg text-base w-full ${isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition mt-2`}
+                                    className={`px-3 py-2 rounded-lg text-base w-full ${isSolidMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition mt-4`}
                                     aria-label="Toggle solid line drawing"
                                 >
                                     Solid Line {isSolidMode ? '(On)' : '(Off)'}
                                 </button>
                                 <button
                                     onClick={toggleDottedMode}
-                                    className={`px-3 py-2 rounded-lg text-base w-full ${isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition mt-2`}
+                                    className={`px-3 py-2 rounded-lg text-base w-full ${isDottedMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-green-700 hover:text-white transition mt-4`}
                                     aria-label="Toggle dotted line drawing"
                                 >
                                     Dotted Line {isDottedMode ? '(On)' : '(Off)'}
                                 </button>
-                                <div className="split-button mt-2">
+                                <div className="split-button mt-4">
                                     <button
                                         onClick={undoLine}
-                                        className="bg-gray-600 text-white px-3 py-2 text-base w-full hover:bg-gray-700 transition"
+                                        className="bg-gray-600 text-white px-3 py-2 text-base hover:bg-gray-700 transition"
                                         aria-label="Undo last drawn line"
                                     >
-                                        Undo Line
+                                        Undo
                                     </button>
                                     <button
                                         onClick={resetLines}
-                                        className="bg-gray-600 text-white px-3 py-2 text-base w-full hover:bg-gray-700 transition"
+                                        className="bg-gray-600 text-white px-3 py-2 text-base hover:bg-gray-700 transition"
                                         aria-label="Reset all drawn lines"
                                     >
                                         Reset Lines
@@ -476,7 +490,7 @@
                                 <svg 
                                     width="100%" 
                                     height="100%" 
-                                    viewBox="75 75 400 400" 
+                                    viewBox="150 25 400 450" 
                                     preserveAspectRatio="xMidYMid meet"
                                     className="border rounded-lg svg-shadow max-w-[600px] h-auto" 
                                     style={{ backgroundColor: 'rgba(0, 128, 0, 0.8)', touchAction: 'none' }} 
@@ -490,36 +504,35 @@
                                     aria-label="Baseball field diagram"
                                 >
                                     <defs>
-                                        <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="2.75" orient="auto">
-                                            <path d="M0,0 L0,5.5 L8,2.75 Z" fill="black" />
+                                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                                            <path d="M0,0 L0,6 L9,3 Z" fill="black" />
                                         </marker>
                                     </defs>
-                                    <rect x="75" y="75" width="400" height="400" fill="rgba(0, 128, 0, 0.8)" />
                                     <path 
-                                        d="M 266 400 L 166 300 Q 200 233 266 233 Q 333 233 366 300 L 266 400 Z" 
+                                        d="M 350 425 L 200 275 Q 250 175 350 175 Q 450 175 500 275 L 350 425 Z" 
                                         fill="burlywood"
                                         stroke="white"
-                                        strokeWidth="1.7"
+                                        strokeWidth="2"
                                     />
                                     <path 
-                                        d="M 266 400 L 200 333 L 266 266 L 333 333 Z" 
+                                        d="M 350 425 L 250 325 L 350 225 L 450 325 Z" 
                                         fill="rgba(0, 128, 0, 0.8)"
                                         stroke="white"
-                                        strokeWidth="1.7"
+                                        strokeWidth="2"
                                     />
-                                    <circle cx="266" cy="333" r="18" fill="burlywood" stroke="white" strokeWidth="1.7" />
-                                    <rect x="258" y="330" width="16" height="4.5" fill="white" />
+                                    <circle cx="350" cy="325" r="20" fill="burlywood" stroke="white" strokeWidth="2" />
+                                    <rect x="340" y="320" width="20" height="5" fill="white" />
                                     <path 
-                                        d="M 260 393 L 273 393 L 273 402 L 266 405 L 260 402 Z" 
+                                        d="M 340 417 L 360 417 L 360 432 L 350 436 L 340 432 Z" 
                                         fill="white"
                                     />
-                                    <rect x="194" y="326" width="13" height="13" fill="white" transform="rotate(45 200 333)" />
-                                    <rect x="266" y="260" width="13" height="13" fill="white" transform="rotate(45 273 266)" />
-                                    <rect x="326" y="326" width="13" height="13" fill="white" transform="rotate(45 333 333)" />
-                                    <line x1="266" y1="400" x2="200" y2="333" stroke="white" strokeWidth="1.7" />
-                                    <line x1="200" y1="333" x2="266" y2="266" stroke="white" strokeWidth="1.7" />
-                                    <line x1="266" y1="266" x2="333" y2="333" stroke="white" strokeWidth="1.7" />
-                                    <line x1="333" y1="333" x2="266" y2="400" stroke="white" strokeWidth="1.7" />
+                                    <rect x="240" y="315" width="15" height="15" fill="white" transform="rotate(45 250 325)" />
+                                    <rect x="340" y="215" width="15" height="15" fill="white" transform="rotate(45 350 225)" />
+                                    <rect x="440" y="315" width="15" height="15" fill="white" transform="rotate(45 450 325)" />
+                                    <line x1="350" y1="425" x2="250" y2="325" stroke="white" strokeWidth="2" />
+                                    <line x1="250" y1="325" x2="350" y2="225" stroke="white" strokeWidth="2" />
+                                    <line x1="350" y1="225" x2="450" y2="325" stroke="white" strokeWidth="2" />
+                                    <line x1="450" y1="325" x2="350" y2="425" stroke="white" strokeWidth="2" />
                                     <>
                                         {lines.map((line, index) => (
                                             <g key={index}>
@@ -529,7 +542,7 @@
                                                     x2={line.end.x}
                                                     y2={line.end.y}
                                                     stroke="black"
-                                                    strokeWidth="1.7"
+                                                    strokeWidth="2"
                                                     strokeDasharray={line.type === 'dotted' ? '5,5' : 'none'}
                                                     markerEnd="url(#arrow)"
                                                 />
@@ -543,7 +556,7 @@
                                                     x2={currentLine.end.x}
                                                     y2={currentLine.end.y}
                                                     stroke="black"
-                                                    strokeWidth="1.7"
+                                                    strokeWidth="2"
                                                     strokeDasharray={currentLine.type === 'dotted' ? '5,5' : 'none'}
                                                     markerEnd="url(#arrow)"
                                                 />
@@ -564,34 +577,10 @@
                                 </svg>
                             </div>
                             <div className="sidebar">
-                                <div className="text-center">
-                                    <h3 className="text-sm font-bold">Save Plays</h3>
-                                </div>
-                                <input
-                                    type="text"
-                                    value={playName}
-                                    onChange={(e) => { 
-                                        setPlayName(e.target.value);
-                                        if (e.target.value.trim()) setPlayNameError('');
-                                    }}
-                                    placeholder="Enter name"
-                                    className="border border-gray-300 p-3 rounded-lg text-sm w-full focus:outline-none focus:ring-2 focus:ring-green-500 mt-4"
-                                    aria-label="Play name input"
-                                />
-                                {playNameError && (
-                                    <p className="error-message">{playNameError}</p>
-                                )}
-                                <button
-                                    onClick={savePlay}
-                                    className="bg-green-600 text-white px-3 py-2 rounded-lg text-base w-full hover:bg-green-700 transition mt-2"
-                                    aria-label="Save current play"
-                                >
-                                    Save
-                                </button>
+                                <h2 className="text-base font-semibold text-center border-b border-gray-200 pb-2">Saved Plays</h2>
                                 <div className="saved-plays-list mt-2">
-                                    <h3 className="text-sm font-bold mb-2">Saved Plays</h3>
                                     {savedPlays.length === 0 ? (
-                                        <p className="text-sm text-gray-500">None saved yet.</p>
+                                        <p className="text-sm text-gray-500">No plays saved yet.</p>
                                     ) : (
                                         savedPlays.map((play, index) => (
                                             <div
